@@ -1,0 +1,5 @@
+#Flask
+config.py
+migrations/
+flask-api
+__pycache__

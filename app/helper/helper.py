@@ -1,3 +1,5 @@
 class Calc():
 	def rate(total, recycled):
-		return "{0:.2f}".format(recycled / total * 100, 2)
+		if total > 0:
+			return "{0:.2f}".format(recycled / total * 100, 2)
+		return 0	

@@ -2,6 +2,7 @@ from marshmallow_jsonapi import Schema, fields
 from marshmallow import validate
 from flask.ext.sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import SQLAlchemyError
+import datetime
 
 db = SQLAlchemy()
 
@@ -18,16 +19,14 @@ class CRUD():
         db.session.delete(resource)
         return db.session.commit()
 
-
-
 class TicketsRd(db.Model, CRUD):
     __tablename__ = 'tickets_rd'     
     TICKET_RD_ID = db.Column(db.Integer, primary_key=True)
     PROJECT_ID = db.Column(db.Integer, db.ForeignKey('projects.PROJECT_ID'), nullable=False)
-    HAULER_ID = db.Column(db.Integer, db.ForeignKey('haulers.HAULER_ID'), nullable=False)
+    HAULER_ID = db.Column(db.Integer, db.ForeignKey('haulers.HAULER_ID'))
     MATERIAL_ID = db.Column(db.Integer)
     FACILITY_ID = db.Column(db.Integer)
-    ticket = db.Column(db.String(250))               
+    ticket = db.Column(db.String(250))                   
       
            
 class TicketsRdSchema(Schema):    
@@ -36,11 +35,15 @@ class TicketsRdSchema(Schema):
     TICKET_RD_ID = fields.Integer(primary_key=True)    
     FACILITY_ID = fields.Integer()    
     PROJECT_ID = fields.Integer()    
-    ticket = fields.String()            
-     
+    ticket = fields.String()
+    submitted_by = fields.String()            
+    weight = fields.String()            
+    recycled = fields.String()            
+    rate_used = fields.String()            
+    date_created = fields.DateTime()
     
      #self links
-    def get_top_level_links(self, data, many):
+    def get_top_level_links(self, data, many):                
         if many:
             self_link = "/tickets_rd/"
         else:            

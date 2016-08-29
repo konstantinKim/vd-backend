@@ -2,18 +2,8 @@ from marshmallow_jsonapi import Schema, fields
 from marshmallow import validate
 from flask.ext.sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import SQLAlchemyError
-from flask.ext.httpauth import HTTPBasicAuth
 
 db = SQLAlchemy()
-auth = HTTPBasicAuth()
-
-@auth.verify_password
-def verify_password(username, password):           
-    hauler = Haulers.query.with_entities(Haulers.password).filter_by(email = username).first()                
-    if hauler and password == hauler.password:
-        return True
-    return False
-
 
 class CRUD():   
 

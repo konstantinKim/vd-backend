@@ -1,6 +1,5 @@
 from flask import Blueprint, request, jsonify, make_response
 from app.users.models import Users, UsersSchema, db
-from app.haulers.models import auth
 from flask_restful import Api, Resource
 
 
@@ -21,7 +20,7 @@ class UsersList(Resource):
     A server MUST respond with 404 Not Found when processing a request to fetch a single resource that does not exist, except when the request warrants a 200 OK response with null as the primary data (as described above)
     a self link as part of the top-level links object"""
         
-    @auth.login_required
+    
     def get(self):        
         users_query = Users.query.all()        
         results = schema.dump(users_query, many=True).data        
@@ -61,8 +60,7 @@ class UsersUpdate(Resource):
     A server MUST respond to a successful request to fetch an individual resource or resource collection with a 200 OK response.
     A server MUST respond with 404 Not Found when processing a request to fetch a single resource that does not exist, except when the request warrants a 200 OK response with null as the primary data (as described above)
     a self link as part of the top-level links object"""
-    
-    @auth.login_required
+        
     def get(self, id):
         user_query = Users.query.get_or_404(id)
         result = schema.dump(user_query).data

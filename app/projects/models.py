@@ -43,6 +43,18 @@ class Facilities(db.Model):
     FACILITY_ID = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(250), unique=True, nullable=False)           
 
+class ProjectsHaulers(db.Model):    
+    __tablename__ = 'projects_haulers'     
+    PROJECT_HAULER_ID = db.Column(db.Integer, primary_key=True)    
+    HAULER_ID = db.Column(db.Integer)    
+    PROJECT_ID = db.Column(db.Integer, db.ForeignKey('projects.PROJECT_ID'), nullable=False)
+
+class ProjectsDebrisbox(db.Model):    
+    __tablename__ = 'projects_debrisbox'     
+    PROJECT_DEBRISBOX_ID = db.Column(db.Integer, primary_key=True)    
+    HAULER_ID = db.Column(db.Integer)    
+    PROJECT_ID = db.Column(db.Integer, db.ForeignKey('projects.PROJECT_ID'), nullable=False)
+
 
 class Projects(db.Model, CRUD):    
     PROJECT_ID = db.Column(db.Integer, primary_key=True)
@@ -50,6 +62,9 @@ class Projects(db.Model, CRUD):
     street = db.Column(db.String(250), unique=True, nullable=False)  
     turner_number = db.Column(db.String(250), nullable=False)                
     tickets = db.relationship(TicketsRd, backref="project", lazy='joined')
+    projects_haulers = db.relationship(ProjectsHaulers, backref="hauler_project", lazy='joined')
+    projects_debrisbox = db.relationship(ProjectsDebrisbox, backref="debrisbox_project", lazy='joined')
+
         
            
 class ProjectsSchema(Schema):    

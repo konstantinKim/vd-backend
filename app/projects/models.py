@@ -61,6 +61,7 @@ class Projects(db.Model, CRUD):
     name = db.Column(db.String(250), unique=True, nullable=False)   
     street = db.Column(db.String(250), unique=True, nullable=False)  
     turner_number = db.Column(db.String(250), nullable=False)                
+    status = db.Column(db.String(250))                
     tickets = db.relationship(TicketsRd, backref="project", lazy='joined')
     projects_haulers = db.relationship(ProjectsHaulers, backref="hauler_project", lazy='joined')
     projects_debrisbox = db.relationship(ProjectsDebrisbox, backref="debrisbox_project", lazy='joined')

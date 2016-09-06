@@ -19,10 +19,16 @@ class CRUD():
         return db.session.commit()
 
 
+class FacilitiesMaterials(db.Model):    
+    __tablename__ = 'facilities_materials'     
+    MATERIAL_ID = db.Column(db.Integer, primary_key=True)
+    FACILITY_ID = db.Column(db.Integer, db.ForeignKey('facilities.FACILITY_ID'))    
 
 class Facilities(db.Model, CRUD):    
+    __tablename__ = 'facilities'     
     FACILITY_ID = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(250), unique=True, nullable=False)       
+    facility_materials = db.relationship(FacilitiesMaterials, backref="facility", lazy='joined')
     
                  
 class FacilitiesSchema(Schema):    

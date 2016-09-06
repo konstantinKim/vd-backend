@@ -18,16 +18,22 @@ def create_app(config_filename):
     
     # Blueprints   
     from app.auth.views import auth
-    app.register_blueprint(auth, url_prefix='/api/v1/auth')
-
-    from app.users.views import users
-    app.register_blueprint(users, url_prefix='/api/v1/users')
+    app.register_blueprint(auth, url_prefix='/api/v1/auth')    
 
     from app.projects.views import projects
     app.register_blueprint(projects, url_prefix='/api/v1/projects')
 
     from app.haulers.views import haulers
     app.register_blueprint(haulers, url_prefix='/api/v1/haulers')
+
+    from app.ticketsRd.views import tickets_rd_bp
+    app.register_blueprint(tickets_rd_bp, url_prefix='/api/v1/tickets_rd')
+
+    from app.materials.views import materials
+    app.register_blueprint(materials, url_prefix='/api/v1/materials')
+
+    from app.facilities.views import facilities
+    app.register_blueprint(facilities, url_prefix='/api/v1/facilities')
             
     return app
 

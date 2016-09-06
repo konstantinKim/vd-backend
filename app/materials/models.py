@@ -23,6 +23,8 @@ class CRUD():
 class Materials(db.Model, CRUD):    
     MATERIAL_ID = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(250), unique=True, nullable=False)       
+    cn_id = db.Column(db.Integer)       
+    pt_id = db.Column(db.Integer)       
     
                  
 class MaterialsSchema(Schema):    
@@ -34,10 +36,12 @@ class MaterialsSchema(Schema):
     
      #self links
     def get_top_level_links(self, data, many):
+        self_link = ''
         if many:
             self_link = "/materials/"
         else:            
-            self_link = "/materials/{}".format(data['attributes']['MATERIAL_ID'])
+            if 'attributes' in data:
+                self_link = "/materials/{}".format(data['attributes']['MATERIAL_ID'])            
         return {'self': self_link}
    
     

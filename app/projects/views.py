@@ -6,7 +6,6 @@ from app.materials.models import MaterialsSchema
 from flask_restful import Api, Resource
 from app.helper.helper import Calc
 from app.auth.models import token_auth, Security
-from itsdangerous import TimedJSONWebSignatureSerializer as JWT
 import json
 
 from sqlalchemy.exc import SQLAlchemyError
@@ -26,21 +25,22 @@ def buildResult(query):
     tickets_count = 0
     total_weight = 0
     total_recycled = 0
-    for ticket in query.tickets:
-        tickets_count += 1            
-        material = MaterialsSchema().dump(ticket.material).data
-        material = material['data']['attributes']            
-        ticket = TicketsRdSchema().dump(ticket).data
-        ticket = ticket['data']['attributes']
-        ticket['material'] = material['name']
-        if not material['MATERIAL_ID'] in m_ids:
-            m_ids.append(material['MATERIAL_ID'])
+    for ticket in query.tickets:                
+        if ticket.material:
+            tickets_count += 1
+            material = MaterialsSchema().dump(ticket.material).data        
+            material = material['data']['attributes']            
+            ticket = TicketsRdSchema().dump(ticket).data
+            ticket = ticket['data']['attributes']
+            ticket['material'] = material['name']
+            if not material['MATERIAL_ID'] in m_ids:
+                m_ids.append(material['MATERIAL_ID'])
 
-        if not ticket['FACILITY_ID'] in tf:
-            tf[ticket['FACILITY_ID']] = []
-        tf[ticket['FACILITY_ID']].append(ticket)                
-        total_weight += float(ticket['weight'])
-        total_recycled += float(ticket['recycled'])
+            if not ticket['FACILITY_ID'] in tf:
+                tf[ticket['FACILITY_ID']] = []
+            tf[ticket['FACILITY_ID']].append(ticket)                
+            total_weight += float(ticket['weight'])
+            total_recycled += float(ticket['recycled'])
 
     result['data']['attributes']['materials_hauled'] = len(m_ids)
     result['data']['attributes']['tickets_count'] = tickets_count
@@ -52,16 +52,17 @@ def buildResult(query):
     result['data']['attributes']['facilities'] = []
     fids = []
     for ticket in query.tickets:            
-        facilities = FacilitiesSchema().dump(ticket.facility).data            
-        facility = facilities['data']['attributes']            
-        #prevent add duplictes            
-        if not facility['FACILITY_ID'] in fids:
-            fids.append(facility['FACILITY_ID'])
-            if facility['FACILITY_ID'] in tf:
-                facility['tickets'] = tf[facility['FACILITY_ID']]
-            else:    
-                facility['tickets'] = []                
-            result['data']['attributes']['facilities'].append(facility)
+        if ticket.facility:
+            facilities = FacilitiesSchema().dump(ticket.facility).data            
+            facility = facilities['data']['attributes']            
+            #prevent add duplictes            
+            if not facility['FACILITY_ID'] in fids:
+                fids.append(facility['FACILITY_ID'])
+                if facility['FACILITY_ID'] in tf:
+                    facility['tickets'] = tf[facility['FACILITY_ID']]
+                else:    
+                    facility['tickets'] = []                
+                result['data']['attributes']['facilities'].append(facility)
 
 
     return result['data']['attributes']        

@@ -84,5 +84,61 @@ class TicketsRdList(Resource):
                 resp.status_code = 403
                 return resp                                
 
+class TicketsRdUpdate(Resource):
+    @token_auth.login_required
+    def patch(self, id):
+        HAULER_ID = Security.getHaulerId()        
+        ticket = TicketsRd.query.filter(TicketsRd.TICKET_RD_ID==id, TicketsRd.HAULER_ID==HAULER_ID).first_or_404()
+        raw_dict = {"data": {"attributes": request.form, "type": "tickets_rd"}}        
+
+        try:
+            schema.validate(raw_dict)
+            params = raw_dict['data']['attributes']
+            
+            for key, value in params.items():                
+                setattr(ticket, key, value)
+          
+            ticket.update()            
+            
+            query = TicketsRd.query.get(ticket.TICKET_RD_ID)                
+            results = schema.dump(query).data
+
+            #Set Material Name
+            material = query.material
+            if material:
+                material = MaterialsSchema().dump(material).data
+                material = material['data']['attributes']['name']
+            else:    
+                material = '' 
+
+            results['data']['attributes']['material'] = material
+
+            #Set Facility Name
+            facility = query.facility
+            if facility:
+                facility = FacilitiesSchema().dump(facility).data
+                facility = facility['data']['attributes']['name']
+            else:    
+                facility = '' 
+
+            results['data']['attributes']['facility'] = facility
+            results['data']['attributes']['image'] = ticket.get_folder(True) + "ticket.jpg"
+            split_date = results['data']['attributes']['thedate'].split('T')
+            results['data']['attributes']['thedate'] = split_date[0]
+            return results['data']['attributes'], 201
+            
+        except ValidationError as err:
+                resp = jsonify({"error": err.messages})
+                resp.status_code = 401
+                return resp               
+                
+        except SQLAlchemyError as e:
+                db.session.rollback()
+                resp = jsonify({"error": str(e)})
+                resp.status_code = 401
+                return resp
+
+
 
 api.add_resource(TicketsRdList, '.json')
+api.add_resource(TicketsRdUpdate, '/<int:id>.json')

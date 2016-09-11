@@ -33,6 +33,7 @@ class TicketsRd(db.Model):
     PROJECT_ID = db.Column(db.Integer, db.ForeignKey('projects.PROJECT_ID'), nullable=False)
     MATERIAL_ID = db.Column(db.Integer, db.ForeignKey('materials.MATERIAL_ID'))
     FACILITY_ID = db.Column(db.Integer, db.ForeignKey('facilities.FACILITY_ID'))
+    HAULER_ID = db.Column(db.Integer)
     ticket = db.Column(db.String(250))               
     facility = db.relationship('Facilities', backref="tickets", lazy='joined')      
     material = db.relationship('Materials', backref="material", lazy='joined') 
@@ -75,12 +76,12 @@ class ProjectsDebrisbox(db.Model):
 
 class Projects(db.Model, CRUD):    
     PROJECT_ID = db.Column(db.Integer, primary_key=True)
-    CITY_ID = db.Column(db.Integer)
+    CITY_ID = db.Column(db.Integer)    
     name = db.Column(db.String(250), unique=True, nullable=False)   
     street = db.Column(db.String(250), unique=True, nullable=False)  
     turner_number = db.Column(db.String(250), nullable=False)                
     status = db.Column(db.String(250))                
-    tickets = db.relationship(TicketsRd, backref="project", lazy='joined')
+    tickets = db.relationship(TicketsRd, backref="project", lazy='joined' )
     projects_haulers = db.relationship(ProjectsHaulers, backref="hauler_project", lazy='joined')
     projects_debrisbox = db.relationship(ProjectsDebrisbox, backref="debrisbox_project", lazy='joined')
 
@@ -90,7 +91,7 @@ class ProjectsSchema(Schema):
     not_blank = validate.Length(min=1, error='Field cannot be blank')    
     id = fields.Integer()    
     PROJECT_ID = fields.Integer(primary_key=True)    
-    CITY_ID = fields.Integer()
+    CITY_ID = fields.Integer()        
     name = fields.String(validate=not_blank)        
     street = fields.String(validate=not_blank)        
     turner_number = fields.String(validate=not_blank)           

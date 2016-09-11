@@ -76,7 +76,7 @@ class TicketsRd(db.Model, CRUD):
         self.date_created = datetime.datetime.today().strftime('%Y-%m-%d')
         self.type = kwargs.get('type', 'rd')
         self.units = kwargs.get('units')
-        HAULER_ID = HAULER_ID = db.Column(db.Integer, nullable=False )
+        HAULER_ID = db.Column(db.Integer, nullable=False )
 
 
     def get_folder(self, half=None):        
@@ -114,6 +114,7 @@ class TicketsRdSchema(Schema):
     FACILITY_ID = fields.Integer()    
     MATERIAL_ID = fields.Integer()    
     PROJECT_ID = fields.Integer()    
+    HAULER_ID = fields.Integer()    
     ticket = fields.String()
     submitted_by = fields.String()            
     weight = fields.String()            

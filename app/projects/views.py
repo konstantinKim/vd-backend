@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, make_response
-from app.projects.models import Projects, ProjectsHaulers, ProjectsDebrisbox, ProjectsSchema, db
+from app.projects.models import Projects, ProjectsHaulers, ProjectsDebrisbox, ProjectsSchema, TicketsRd, db
 from app.facilities.models import FacilitiesSchema
 from app.ticketsRd.models import TicketsRdSchema
 from app.materials.models import MaterialsSchema
@@ -18,34 +18,38 @@ projects = Blueprint('projects', __name__)
 schema = ProjectsSchema()
 api = Api(projects)
 
-def buildResult(query):
-    result = schema.dump(query).data                    
+def buildResult(query):    
+    HAULER_ID = Security.getHaulerId()
+    result = schema.dump(query).data                        
     #group tickets by facility
     tf = {}
     m_ids = []
     tickets_count = 0
     total_weight = 0
     total_recycled = 0
-    for ticket in query.tickets:                
-        if ticket.material:
+    for ticket in query.tickets:        
+        ticketDump = TicketsRdSchema().dump(ticket).data                                
+        if ticket.material and ticketDump['data']['attributes']['HAULER_ID'] == HAULER_ID:
             ticket_image = ticket.get_folder(True) + "ticket.jpg"
             tickets_count += 1
             material = MaterialsSchema().dump(ticket.material).data        
             material = material['data']['attributes']            
-            ticket = TicketsRdSchema().dump(ticket).data
-            ticket = ticket['data']['attributes']
-            ticket['material'] = material['name']
-            ticket['image'] = ticket_image            
-            split_date = ticket['thedate'].split('T')            
-            ticket['thedate'] = split_date[0]
+                        
+            ticketDump = ticketDump['data']['attributes']
+            ticketDump['material'] = material['name']
+            ticketDump['image'] = ticket_image            
+            split_date = ticketDump['thedate'].split('T')            
+            ticketDump['thedate'] = split_date[0]
+            
             if not material['MATERIAL_ID'] in m_ids:
                 m_ids.append(material['MATERIAL_ID'])
 
-            if not ticket['FACILITY_ID'] in tf:
-                tf[ticket['FACILITY_ID']] = []
-            tf[ticket['FACILITY_ID']].append(ticket)                
-            total_weight += float(ticket['weight'])
-            total_recycled += float(ticket['recycled'])
+            if not ticketDump['FACILITY_ID'] in tf:
+                tf[ticketDump['FACILITY_ID']] = []
+            
+            tf[ticketDump['FACILITY_ID']].append(ticketDump)                
+            total_weight += float(ticketDump['weight'])
+            total_recycled += float(ticketDump['recycled'])
 
     result['data']['attributes']['materials_hauled'] = len(m_ids)
     result['data']['attributes']['tickets_count'] = tickets_count
@@ -61,12 +65,9 @@ def buildResult(query):
             facilities = FacilitiesSchema().dump(ticket.facility).data            
             facility = facilities['data']['attributes']            
             #prevent add duplictes            
-            if not facility['FACILITY_ID'] in fids:
+            if not facility['FACILITY_ID'] in fids and facility['FACILITY_ID'] in tf:
                 fids.append(facility['FACILITY_ID'])
-                if facility['FACILITY_ID'] in tf:
-                    facility['tickets'] = tf[facility['FACILITY_ID']]
-                else:    
-                    facility['tickets'] = []                
+                facility['tickets'] = tf[facility['FACILITY_ID']]
                 result['data']['attributes']['facilities'].append(facility)
 
 
@@ -77,7 +78,7 @@ class ProjectsList(Resource):
     @token_auth.login_required
     def get(self):                
         HAULER_ID = Security.getHaulerId()        
-        query = Projects.query.filter(ProjectsHaulers.HAULER_ID==HAULER_ID, ProjectsHaulers.PROJECT_ID==Projects.PROJECT_ID, Projects.status=='approved').all()        
+        query = Projects.query.filter(ProjectsHaulers.HAULER_ID==HAULER_ID, ProjectsHaulers.PROJECT_ID==Projects.PROJECT_ID, Projects.status=='approved').all()
         
         haulersIds = []
         for project in query:

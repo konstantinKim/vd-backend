@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, make_response
 from app.ticketsRd.models import TicketsRd, TicketsRdSchema, db
 from app.materials.models import MaterialsSchema
+from app.facilities.models import FacilitiesSchema
 from flask_restful import Api, Resource
 from app.auth.models import token_auth, Security
 
@@ -12,33 +13,64 @@ tickets_rd_bp = Blueprint('tickets_rd', __name__)
 schema = TicketsRdSchema()
 api = Api(tickets_rd_bp)
 
-class TicketsRdList(Resource):
-    @token_auth.login_required
+class TicketsRdList(Resource):    
     def get(self):                
-        return (1)
+        folder = TicketsRd.get_folder('ticket', '881RD')
+        print(folder)
+
+        return(1)
 
     @token_auth.login_required
     def post(self):                   
-        raw_dict = {"data": {"attributes": request.form, "type": "tickets_rd"}}        
-        file = request.files
-        print(file)
-        print(request.headers)
-        print(raw_dict)
+        raw_dict = {"data": {"attributes": request.form, "type": "tickets_rd"}}                
         try:
-                schema.validate(raw_dict)
-                params = raw_dict['data']['attributes']                
-                ticket = TicketsRd(ticket=params['ticket'], PROJECT_ID=params['PROJECT_ID'], HAULER_ID=Security.getHaulerId())
+                schema.validate(raw_dict)                                
+                params = raw_dict['data']['attributes']                                            
+                
+                ticket = TicketsRd(                    
+                    PROJECT_ID=params['PROJECT_ID'],
+                    MATERIAL_ID=params['MATERIAL_ID'],
+                    FACILITY_ID=params['FACILITY_ID'],
+                    ticket=params['ticket'], 
+                    thedate=params['thedate'],                    
+                    weight=params['weight'],
+                    recycled=params['weight'],
+                    percentage=params['percentage'],
+                    rate_used=100,
+                    submitted_by=params['submitted_by'],
+                    units=params['units'],
+                    HAULER_ID=Security.getHaulerId(),
+                )
                 ticket.add(ticket)                                
+
+                file = request.files['image']
+                ticket.save_file(file)
+
                 query = TicketsRd.query.get(ticket.TICKET_RD_ID)                
                 results = schema.dump(query).data                
+                
+                #Set Material Name
                 material = query.material
                 if material:
-                    material = MaterialsSchema().dump(query.material).data
+                    material = MaterialsSchema().dump(material).data
                     material = material['data']['attributes']['name']
                 else:    
                     material = '' 
 
                 results['data']['attributes']['material'] = material
+
+                #Set Facility Name
+                facility = query.facility
+                if facility:
+                    facility = FacilitiesSchema().dump(facility).data
+                    facility = facility['data']['attributes']['name']
+                else:    
+                    facility = '' 
+
+                results['data']['attributes']['facility'] = facility
+                results['data']['attributes']['image'] = ticket.get_folder(True) + "ticket.jpg"
+                split_date = results['data']['attributes']['thedate'].split('T')
+                results['data']['attributes']['thedate'] = split_date[0]
                 return results['data']['attributes'], 201
             
         except ValidationError as err:
@@ -50,8 +82,7 @@ class TicketsRdList(Resource):
                 db.session.rollback()
                 resp = jsonify({"error": str(e)})
                 resp.status_code = 403
-                return resp
-        
+                return resp                                
 
 
 api.add_resource(TicketsRdList, '.json')

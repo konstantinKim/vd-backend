@@ -7,6 +7,7 @@ from flask_restful import Api, Resource
 from app.helper.helper import Calc
 from app.auth.models import token_auth, Security
 import json
+import datetime
 
 from sqlalchemy.exc import SQLAlchemyError
 from marshmallow import ValidationError
@@ -27,12 +28,16 @@ def buildResult(query):
     total_recycled = 0
     for ticket in query.tickets:                
         if ticket.material:
+            ticket_image = ticket.get_folder(True) + "ticket.jpg"
             tickets_count += 1
             material = MaterialsSchema().dump(ticket.material).data        
             material = material['data']['attributes']            
             ticket = TicketsRdSchema().dump(ticket).data
             ticket = ticket['data']['attributes']
             ticket['material'] = material['name']
+            ticket['image'] = ticket_image            
+            split_date = ticket['thedate'].split('T')            
+            ticket['thedate'] = split_date[0]
             if not material['MATERIAL_ID'] in m_ids:
                 m_ids.append(material['MATERIAL_ID'])
 

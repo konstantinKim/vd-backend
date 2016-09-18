@@ -3,3 +3,4 @@ config.py
 migrations/
 flask-api
 __pycache__
+data/

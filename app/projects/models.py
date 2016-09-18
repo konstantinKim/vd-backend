@@ -38,8 +38,10 @@ class TicketsRd(db.Model):
     facility = db.relationship('Facilities', backref="tickets", lazy='joined')      
     material = db.relationship('Materials', backref="material", lazy='joined') 
     submitted_by = db.Column(db.String()) 
+    units = db.Column(db.Enum('yards','pounds','metric_tons','cubic_meter','kilograms','tons'))    
     weight = db.Column(db.Numeric(precision=14, scale=4))  
     recycled = db.Column(db.Numeric(precision=14, scale=4))   
+    percentage = db.Column(db.String())
     rate_used = db.Column(db.String()) 
     thedate = db.Column(db.DateTime())                         
 

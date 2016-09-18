@@ -25,7 +25,7 @@ class FacilitiesMaterialList(Resource):
     def get(self, city_id, material_id):        
         #query = Facilities.query.filter().all()        
         #results = schema.dump(query, many=True).data
-        print(material_id)
+        #print(material_id)
         query = db.engine.execute("SELECT DISTINCT(facilities.FACILITY_ID), facilities.* FROM facilities, cities_facilities, facilities_materials "+
           "WHERE facilities.FACILITY_ID=cities_facilities.FACILITY_ID "+
           "AND cities_facilities.CITY_ID=" + str(city_id) + " " +

@@ -76,7 +76,7 @@ class TicketsRd(db.Model, CRUD):
         self.date_created = datetime.datetime.today().strftime('%Y-%m-%d')
         self.type = kwargs.get('type', 'rd')
         self.units = kwargs.get('units')
-        HAULER_ID = db.Column(db.Integer, nullable=False )
+        self.HAULER_ID = kwargs.get('HAULER_ID')
 
 
     def get_folder(self, half=None):        
@@ -94,8 +94,8 @@ class TicketsRd(db.Model, CRUD):
 
     def save_file(self, file):        
         if file:
-            folder = self.get_folder()                        
-            file.save(os.path.join(folder, 'ticket'))
+            folder = self.get_folder()                                    
+            file.save(os.path.join(folder, 'ticket'))            
             #Convert to jpg
             cmd = "convert1 -quality 95 -type truecolor -colorspace RGB -append " + folder + "ticket " + folder + "ticket.jpg"            
             PIPE = subprocess.PIPE
@@ -117,8 +117,10 @@ class TicketsRdSchema(Schema):
     HAULER_ID = fields.Integer()    
     ticket = fields.String()
     submitted_by = fields.String()            
+    units = fields.String()          
     weight = fields.String()            
     recycled = fields.String()            
+    percentage = fields.String()
     rate_used = fields.String()    
     thedate = fields.DateTime()
     

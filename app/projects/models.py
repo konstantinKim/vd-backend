@@ -110,4 +110,17 @@ class ProjectsSchema(Schema):
     
     class Meta:
         type_ = 'projects'
+
+def syncProject(id):
+    query = db.engine.execute("UPDATE projects "+
+        "SET tickets_rd=(SELECT COUNT(*) FROM tickets_rd trd WHERE trd.PROJECT_ID="+ str(id) + ") "+
+        "WHERE PROJECT_ID=" + str(id))        
+    query = db.engine.execute("UPDATE projects SET tickets_sr=(SELECT COUNT(*) FROM tickets_sr WHERE PROJECT_ID="+str(id)+") WHERE PROJECT_ID="+str(id))        
+    query = db.engine.execute("UPDATE projects SET sr=(SELECT SUM(weight) FROM tickets_sr WHERE PROJECT_ID="+str(id)+") WHERE PROJECT_ID="+str(id))        
+    query = db.engine.execute("UPDATE projects SET r=(SELECT SUM(recycled) FROM tickets_rd trd WHERE PROJECT_ID="+str(id)+") WHERE PROJECT_ID="+str(id))        
+    query = db.engine.execute("UPDATE projects SET d=(SELECT SUM(weight * (percentage / 100)) - SUM(recycled) FROM tickets_rd trd WHERE PROJECT_ID="+str(id)+") WHERE PROJECT_ID="+str(id))        
+    query = db.engine.execute("UPDATE projects SET rs=(sr + r) WHERE PROJECT_ID="+str(id))        
+    query = db.engine.execute("UPDATE projects SET percentage=(rs / (rs + d)) * 100 WHERE PROJECT_ID="+str(id))        
+    
+    return True
         

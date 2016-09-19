@@ -1,5 +1,6 @@
 from flask import Blueprint, request, jsonify, make_response
 from app.ticketsRd.models import TicketsRd, TicketsRdSchema, db
+from app.projects.models import syncProject
 from app.materials.models import MaterialsSchema
 from app.facilities.models import FacilitiesSchema
 from flask_restful import Api, Resource
@@ -25,8 +26,8 @@ class TicketsRdList(Resource):
     def post(self):                   
         raw_dict = {"data": {"attributes": request.form, "type": "tickets_rd"}}                
         try:
-                schema.validate(raw_dict)                                
-                params = raw_dict['data']['attributes']                                            
+                schema.validate(raw_dict)                                                
+                params = raw_dict['data']['attributes']                                                            
                 
                 ticket = TicketsRd(                    
                     PROJECT_ID=params['PROJECT_ID'],
@@ -35,13 +36,16 @@ class TicketsRdList(Resource):
                     ticket=params['ticket'], 
                     thedate=params['thedate'],                    
                     weight=params['weight'],
-                    recycled=params['weight'],
+                    recycled=0,
                     percentage=params['percentage'],
                     rate_used=100,
                     submitted_by=params['submitted_by'],
                     units=params['units'],
                     HAULER_ID=Security.getHaulerId(),
                 )
+                
+                ticket.validateTicket()
+                ticket.setRecyclingRates()
                 ticket.add(ticket)                                
 
                 file = request.files['image']
@@ -72,6 +76,9 @@ class TicketsRdList(Resource):
                 results['data']['attributes']['image'] = ticket.get_folder(True) + "ticket.jpg"
                 split_date = results['data']['attributes']['thedate'].split('T')
                 results['data']['attributes']['thedate'] = split_date[0]
+
+                syncProject(ticket.PROJECT_ID)
+
                 return results['data']['attributes'], 201
             
         except ValidationError as err:
@@ -83,7 +90,13 @@ class TicketsRdList(Resource):
                 db.session.rollback()
                 resp = jsonify({"error": str(e)})
                 resp.status_code = 403
-                return resp                                
+                return resp
+
+        except ValueError as e:
+                resp = jsonify({"error": str(e)})
+                resp.status_code = 403
+                resp.statusText = str(e)
+                return resp
 
 class TicketsRdUpdate(Resource):
     @token_auth.login_required
@@ -93,12 +106,18 @@ class TicketsRdUpdate(Resource):
         raw_dict = {"data": {"attributes": request.form, "type": "tickets_rd"}}                
 
         try:            
-            schema.validate(raw_dict)                        
+            schema.validate(raw_dict)                                    
             params = raw_dict['data']['attributes']                        
+            old_ticket = ticket.ticket
+            old_facility = ticket.FACILITY_ID
             
             for key, value in params.items():                
                 setattr(ticket, key, value)            
 
+            if params['ticket'] != old_ticket or int(old_facility) != int(params['FACILITY_ID']):
+                ticket.validateTicket()
+
+            ticket.setRecyclingRates()
             ticket.update()                                                          
             
             if 'image' in request.files:
@@ -130,6 +149,8 @@ class TicketsRdUpdate(Resource):
             results['data']['attributes']['image'] = ticket.get_folder(True) + "ticket.jpg?v=" + str(time.time())
             split_date = results['data']['attributes']['thedate'].split('T')
             results['data']['attributes']['thedate'] = split_date[0]
+
+            syncProject(ticket.PROJECT_ID)
             return results['data']['attributes'], 201
             
         except ValidationError as err:
@@ -143,11 +164,19 @@ class TicketsRdUpdate(Resource):
                 resp.status_code = 403
                 return resp
 
+        except ValueError as e:
+                resp = jsonify({"error": str(e)})
+                resp.status_code = 403
+                resp.statusText = str(e)
+                return resp        
+
     def delete(self, id):
-        HAULER_ID = Security.getHaulerId()        
+        HAULER_ID = Security.getHaulerId()
         ticket = TicketsRd.query.filter(TicketsRd.TICKET_RD_ID==id, TicketsRd.HAULER_ID==HAULER_ID).first_or_404()
         try:
+            ticket.setRecyclingRates()
             delete = ticket.delete(ticket)
+            syncProject(ticket.PROJECT_ID)
             response = make_response()
             response.status_code = 204
             return response
@@ -155,8 +184,14 @@ class TicketsRdUpdate(Resource):
         except SQLAlchemyError as e:
                 db.session.rollback()
                 resp = jsonify({"error": str(e)})
-                resp.status_code = 401
+                resp.status_code = 403
                 return resp
+
+        except ValueError as e:
+                resp = jsonify({"error": str(e)})
+                resp.status_code = 403
+                resp.statusText = str(e)
+                return resp                
 
 
 api.add_resource(TicketsRdList, '.json')

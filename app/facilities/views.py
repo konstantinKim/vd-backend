@@ -22,7 +22,7 @@ class FacilitiesList(Resource):
 
 class FacilitiesMaterialList(Resource):                
     @token_auth.login_required
-    def get(self, city_id, material_id):        
+    def get(self, city_id, material_id, project_id):        
         #query = Facilities.query.filter().all()        
         #results = schema.dump(query, many=True).data
         #print(material_id)
@@ -33,7 +33,15 @@ class FacilitiesMaterialList(Resource):
           "AND facilities.FACILITY_ID=facilities_materials.FACILITY_ID "+
           "AND facilities_materials.MATERIAL_ID=" + str(material_id) + " ORDER BY name ASC")
         results = schema.dump(query, many=True).data
+
+        query = db.engine.execute("SELECT DISTINCT(facilities.FACILITY_ID), facilities.* FROM facilities, projects_facilities, facilities_materials \
+        WHERE facilities.FACILITY_ID=facilities_materials.FACILITY_ID AND facilities_materials.MATERIAL_ID=" + str(material_id) + " \
+        AND facilities.FACILITY_ID=projects_facilities.FACILITY_ID \
+        AND projects_facilities.PROJECT_ID=" + str(project_id) + " ORDER BY name ASC")                
+
+        results['selected_facilities'] = schema.dump(query, many=True).data
+                
         return results                        
 
 api.add_resource(FacilitiesList, '.json')
-api.add_resource(FacilitiesMaterialList, '/city/<int:city_id>/material/<int:material_id>.json')
+api.add_resource(FacilitiesMaterialList, '/city/<int:city_id>/material/<int:material_id>/project/<int:project_id>.json')

@@ -3,7 +3,7 @@ from marshmallow import validate, ValidationError
 from flask.ext.sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import SQLAlchemyError
 import datetime
-from config import APP_ROOT
+from config import APP_ROOT, DEBUG
 import hashlib
 import os
 import subprocess
@@ -97,7 +97,10 @@ class TicketsRd(db.Model, CRUD):
             folder = self.get_folder()                                    
             file.save(os.path.join(folder, 'ticket'))            
             #Convert to jpg
-            cmd = "convert1 -quality 95 -type truecolor -colorspace RGB -append " + folder + "ticket " + folder + "ticket.jpg"            
+            if DEBUG:
+                cmd = "convert1 -quality 95 -type truecolor -colorspace RGB -append " + folder + "ticket " + folder + "ticket.jpg"            
+            else:
+                cmd = "convert -quality 95 -type truecolor -colorspace RGB -append " + folder + "ticket " + folder + "ticket.jpg"                
             PIPE = subprocess.PIPE
             p = subprocess.Popen(cmd, shell=True, stdin=PIPE, stdout=PIPE,
                     stderr=subprocess.STDOUT)

@@ -80,24 +80,18 @@ class ProjectsList(Resource):
         HAULER_ID = Security.getHaulerId()        
         query = Projects.query.filter(ProjectsHaulers.HAULER_ID==HAULER_ID, ProjectsHaulers.PROJECT_ID==Projects.PROJECT_ID, Projects.status=='approved').all()        
         haulersIds = []
-        for project in query:
-            print('///////////////////////////')
-            print(project)
+        for project in query:            
             haulersIds.append(project.PROJECT_ID)            
 
         debris = Projects.query.filter(ProjectsDebrisbox.HAULER_ID==HAULER_ID, ProjectsDebrisbox.PROJECT_ID==Projects.PROJECT_ID, Projects.status=='approved').all()            
         for project in debris:
-            if not project.PROJECT_ID in haulersIds:            
-                print('///////////////////////////')
-                print(project)
+            if not project.PROJECT_ID in haulersIds:                                        
                 query.append(project)
 
         results = []
         for project in query:                                    
-            results.append(buildResult(project))             
-        
-        print('///////////////////////////')
-        
+            results.append(buildResult(project))                             
+
         return results                    
         #return(json.dumps([{"id": 9,"name": "XXXUPDCompleted project name","address": "project address","number": "01","company": "Vendor Company","materials_hauled": "1","total_tons": "0","recycled": "0","rate": "50","tickets_count": "5","facilities": [{"id": 9,"name": "Facility 1","tickets": [{"id": 1,"ticket": "ticket number","material": "Material Name","submitted_by": "Submitted By","weight": "100","recycled": "50","rate": "90","date": "7/26/2016"}, {"id": 2,"ticket": "ticket number","material": "Material Name","submitted_by": "Submitted By","weight": "100","recycled": "50","rate": "90","date": "7/26/2016"}]}]}]))
 

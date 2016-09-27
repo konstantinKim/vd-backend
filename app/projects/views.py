@@ -78,8 +78,7 @@ class ProjectsList(Resource):
     @token_auth.login_required
     def get(self):                
         HAULER_ID = Security.getHaulerId()        
-        query = Projects.query.filter(ProjectsHaulers.HAULER_ID==HAULER_ID, ProjectsHaulers.PROJECT_ID==Projects.PROJECT_ID, Projects.status=='approved').all()
-        print('///////////////////////////')
+        query = Projects.query.filter(ProjectsHaulers.HAULER_ID==HAULER_ID, ProjectsHaulers.PROJECT_ID==Projects.PROJECT_ID, Projects.status=='approved').all()        
         haulersIds = []
         for project in query:
             print('///////////////////////////')
@@ -96,6 +95,8 @@ class ProjectsList(Resource):
         results = []
         for project in query:                                    
             results.append(buildResult(project))             
+        
+        print('///////////////////////////')
         
         return results                    
         #return(json.dumps([{"id": 9,"name": "XXXUPDCompleted project name","address": "project address","number": "01","company": "Vendor Company","materials_hauled": "1","total_tons": "0","recycled": "0","rate": "50","tickets_count": "5","facilities": [{"id": 9,"name": "Facility 1","tickets": [{"id": 1,"ticket": "ticket number","material": "Material Name","submitted_by": "Submitted By","weight": "100","recycled": "50","rate": "90","date": "7/26/2016"}, {"id": 2,"ticket": "ticket number","material": "Material Name","submitted_by": "Submitted By","weight": "100","recycled": "50","rate": "90","date": "7/26/2016"}]}]}]))

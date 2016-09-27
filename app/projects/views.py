@@ -79,7 +79,7 @@ class ProjectsList(Resource):
     def get(self):                
         HAULER_ID = Security.getHaulerId()        
         query = Projects.query.filter(ProjectsHaulers.HAULER_ID==HAULER_ID, ProjectsHaulers.PROJECT_ID==Projects.PROJECT_ID, Projects.status=='approved').all()
-        
+        print('///////////////////////////')
         haulersIds = []
         for project in query:
             print('///////////////////////////')

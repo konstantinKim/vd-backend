@@ -84,7 +84,7 @@ class Statistics():
                 project_types.append(project.CONSTRUCTION_TYPE_ID_PROJECT)
 
             if 'approved' == project.status:
-                #self.activeProjects += 1
+                self.activeProjects += 1
                 pass
             if 'completed' == project.status:
                 #self.completedProjects += 1                    

@@ -35,7 +35,7 @@ class Haulers(db.Model, CRUD):
     debrisbox = db.Column(db.Enum('true','false'), default='false')        
     cell = db.Column(db.String(250))        
     selfhaul = db.Column(db.Enum('true','false'), default='false')                
-    password = db.Column(db.String(250))            
+    password = db.Column(db.String(250))                
       
            
 class HaulersSchema(Schema):    

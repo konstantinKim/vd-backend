@@ -176,6 +176,7 @@ class TicketsRd(db.Model, CRUD):
 
         self.weight = weight
         self.recycled = recycled                                            
+        self.rate_used = rate
 
            
 class TicketsRdSchema(Schema):    

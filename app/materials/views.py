@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, make_response
-from app.materials.models import Materials, MaterialsSchema, db
+from app.materials.models import Materials, MaterialsSchema, MaterialsSalvage, MaterialsSalvageSchema, db
 from flask_restful import Api, Resource
 
 
@@ -10,6 +10,7 @@ from marshmallow import ValidationError
 materials = Blueprint('materials', __name__)
 
 schema = MaterialsSchema()
+salvageSchema = MaterialsSalvageSchema()
 api = Api(materials)
 
 class MaterialsList(Resource):                
@@ -18,4 +19,11 @@ class MaterialsList(Resource):
         results = schema.dump(query, many=True).data
         return results                
 
+class MaterialsSalvageList(Resource):                
+    def get(self):        
+        query = MaterialsSalvage.query.all()        
+        results = salvageSchema.dump(query, many=True).data
+        return results                        
+
 api.add_resource(MaterialsList, '.json')
+api.add_resource(MaterialsSalvageList, '/salvage.json')

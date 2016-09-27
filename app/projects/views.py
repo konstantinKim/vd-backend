@@ -82,11 +82,15 @@ class ProjectsList(Resource):
         
         haulersIds = []
         for project in query:
+            print('///////////////////////////')
+            print(project)
             haulersIds.append(project.PROJECT_ID)            
 
         debris = Projects.query.filter(ProjectsDebrisbox.HAULER_ID==HAULER_ID, ProjectsDebrisbox.PROJECT_ID==Projects.PROJECT_ID, Projects.status=='approved').all()            
         for project in debris:
             if not project.PROJECT_ID in haulersIds:            
+                print('///////////////////////////')
+                print(project)
                 query.append(project)
 
         results = []

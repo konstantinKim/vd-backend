@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify, make_response
-from app.auth.models import Auth, basic_auth
-from app.haulers.models import Haulers
+from app.auth.models import Auth, basic_auth, token_auth, Security
+from app.haulers.models import Haulers, HaulersSchema
 from flask_restful import Api, Resource
 import json
 import hashlib
@@ -19,7 +19,11 @@ class Authentiaction(Resource):
             response = make_response("HTTP/1.1 401 Unauthorized", 401)            
             return (response)
         else:
-            response = make_response(json.dumps(token))
+            HAULER_ID = Security.getHaulerId(token)        
+            query = Haulers.query.get_or_404(HAULER_ID)
+            results = HaulersSchema().dump(query).data
+            data = { 'token': token, 'HAULER_ID': results['data']['attributes']['HAULER_ID'], 'email': results['data']['attributes']['email'], 'contact': results['data']['attributes']['contact'], 'company': results['data']['attributes']['name']} 
+            response = make_response(json.dumps(data))
             return (response)                
 
 class SignUp(Resource):                    
@@ -40,7 +44,9 @@ class SignUp(Resource):
                 hauler.update()
                 token = Auth.setToken(HAULER_ID)                            
                 if token:
-                    response = make_response(json.dumps(token))
+                    results = HaulersSchema().dump(hauler).data
+                    data = { 'token': token, 'HAULER_ID': results['data']['attributes']['HAULER_ID'], 'email': results['data']['attributes']['email'], 'contact': results['data']['attributes']['contact'], 'company': results['data']['attributes']['name']} 
+                    response = make_response(json.dumps(data))
                     return (response)                   
 
             response = make_response("HTTP/1.1 403 Forbidden", 403)            
@@ -63,7 +69,22 @@ class SignUp(Resource):
                 resp.statusText = str(e)
                 return resp 
 
+class UserData(Resource):                
+    @token_auth.login_required
+    def get(self):                              
+        HAULER_ID = Security.getHaulerId()        
+        query = Haulers.query.get_or_404(HAULER_ID)
+        results = HaulersSchema().dump(query).data
+
+        data = { 'HAULER_ID': results['data']['attributes']['HAULER_ID'], 'email': results['data']['attributes']['email'], 'contact': results['data']['attributes']['contact'], 'company': results['data']['attributes']['name']} 
+        response = make_response(json.dumps(data))        
+        
+        #return (results)                        
+        return (response)
+                        
+
+
 
 api.add_resource(Authentiaction, '.json')
-#api.add_resource(SignUp, '/signup/<token>.json')
+api.add_resource(UserData, '/data.json')
 api.add_resource(SignUp, '/signup.json')

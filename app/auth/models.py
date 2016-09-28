@@ -68,8 +68,12 @@ class Auth():
         raise ValueError("Invalid token")
 
 class Security():
-    def getHaulerId():              
-        access_token = request.headers.get('authorization')
+    def getHaulerId(token=False):              
+        if token:
+            access_token = token
+        else:        
+            access_token = request.headers.get('authorization')
+            
         if access_token:
             access_token = access_token.replace('Bearer', '').strip()
             if len(access_token):

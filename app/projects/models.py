@@ -81,7 +81,7 @@ class Projects(db.Model, CRUD):
     CITY_ID = db.Column(db.Integer)    
     name = db.Column(db.String(250), unique=True, nullable=False)   
     street = db.Column(db.String(250), unique=True, nullable=False)  
-    turner_number = db.Column(db.String(250), nullable=False)                
+    tracking = db.Column(db.String(64), nullable=False)                
     status = db.Column(db.String(250))                
     tickets = db.relationship(TicketsRd, backref="project", lazy='joined' )
     projects_haulers = db.relationship(ProjectsHaulers, backref="hauler_project", lazy='joined')
@@ -96,7 +96,7 @@ class ProjectsSchema(Schema):
     CITY_ID = fields.Integer()        
     name = fields.String(validate=not_blank)        
     street = fields.String(validate=not_blank)        
-    turner_number = fields.String(validate=not_blank)           
+    tracking = fields.String(validate=not_blank)           
      
     
      #self links

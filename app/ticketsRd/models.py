@@ -8,7 +8,7 @@ import hashlib
 import os
 import subprocess
 
-db = SQLAlchemy()
+db = SQLAlchemy(session_options={"autoflush": False})
 
 class CRUD():   
 
@@ -120,63 +120,67 @@ class TicketsRd(db.Model, CRUD):
                 raise ValueError("Ticket #"+self.ticket+" has already been used.")
 
     def setRecyclingRates(self):
-        if int(self.FACILITY_ID) <= 0:
-            raise valueError('Error validating ticket total because the facility ID is empty')
-        
-        PROJECT_ID = self.PROJECT_ID
-        HAULER_ID = self.HAULER_ID
-        FACILITY_ID = self.FACILITY_ID
-        MATERIAL_ID = self.MATERIAL_ID
-        percentage = self.percentage
+        try:
+            if int(self.FACILITY_ID) <= 0:
+                raise valueError('Error validating ticket total because the facility ID is empty')
+            
+            PROJECT_ID = self.PROJECT_ID
+            HAULER_ID = self.HAULER_ID
+            FACILITY_ID = self.FACILITY_ID
+            MATERIAL_ID = self.MATERIAL_ID
+            percentage = self.percentage
 
-        query = db.engine.execute("select projects.PROJECT_ID FROM projects "+
-            "LEFT JOIN projects_haulers ON projects_haulers.PROJECT_ID=projects.PROJECT_ID "+
-            "LEFT JOIN projects_debrisbox ON projects_debrisbox.PROJECT_ID=projects.PROJECT_ID "+
-            "WHERE projects.status='approved' AND projects.PROJECT_ID=" + str(PROJECT_ID) + " AND (projects_haulers.HAULER_ID=" + str(HAULER_ID) + " OR projects_debrisbox.HAULER_ID="+str(HAULER_ID)+")")
+            query = db.engine.execute("select projects.PROJECT_ID FROM projects "+
+                "LEFT JOIN projects_haulers ON projects_haulers.PROJECT_ID=projects.PROJECT_ID "+
+                "LEFT JOIN projects_debrisbox ON projects_debrisbox.PROJECT_ID=projects.PROJECT_ID "+
+                "WHERE projects.status='approved' AND projects.PROJECT_ID=" + str(PROJECT_ID) + " AND (projects_haulers.HAULER_ID=" + str(HAULER_ID) + " OR projects_debrisbox.HAULER_ID="+str(HAULER_ID)+")")
 
-        project = query.fetchone()
-        if not project:
-            raise ValueError("Sorry, you cannot add tickets to this project")
+            project = query.fetchone()
+            if not project:
+                raise ValueError("Sorry, you cannot add tickets to this project")
 
-        query = db.engine.execute("SELECT conversion_rate FROM facilities_materials "+
-            "WHERE FACILITY_ID="+str(FACILITY_ID)+" AND MATERIAL_ID=" + str(MATERIAL_ID))            
-        rate = query.fetchone()
-        if rate:
-            rate = rate[0]
-        else:
-            raise ValueError("Invalid Facility or Material")            
+            query = db.engine.execute("SELECT conversion_rate FROM facilities_materials "+
+                "WHERE FACILITY_ID="+str(FACILITY_ID)+" AND MATERIAL_ID=" + str(MATERIAL_ID))            
+            rate = query.fetchone()
+            if rate:
+                rate = rate[0]
+            else:
+                raise ValueError("Invalid Facility or Material")            
 
-        query = db.engine.execute("SELECT density FROM materials "+
-            "WHERE MATERIAL_ID="+str(MATERIAL_ID))                
-        
-        material = query.fetchone()
-        density = 0
-        if material:
-            density = material[0]
-        else:
-            raise ValueError("Invalid Material")
+            query = db.engine.execute("SELECT density FROM materials "+
+                "WHERE MATERIAL_ID="+str(MATERIAL_ID))                
+            
+            material = query.fetchone()
+            density = 0
+            if material:
+                density = material[0]
+            else:
+                raise ValueError("Invalid Material")
 
-        weight = self.weight
-        if self.units == 'yards':
-            weight = weight * density;    
-        if self.units == 'pounds':
-            weight = weight / 2000
-        if self.units == 'metric_tons':
-            weight = weight * 1.10231
-        if self.units == 'cubic_meter':
-            cy = weight * 1.30795062
-            weight = cy * density
-        if self.units == 'kilograms':
-            pounds = weight * 2.20462
-            weight = pounds / 2000
+            weight = self.weight                                                
 
-        recycled = (((float(rate) / 100) * float(weight)) * (float(percentage) / 100))    
-        if recycled < 0:
-            recycled = 0            
+            if self.units == 'yards':
+                weight = weight * density;    
+            if self.units == 'pounds':
+                weight = weight / 2000
+            if self.units == 'metric_tons':
+                weight = weight * 1.10231
+            if self.units == 'cubic_meter':
+                cy = weight * 1.30795062
+                weight = cy * density
+            if self.units == 'kilograms':
+                pounds = weight * 2.20462
+                weight = pounds / 2000
 
-        self.weight = weight
-        self.recycled = recycled                                            
-        self.rate_used = rate
+            recycled = (((float(rate) / 100) * float(weight)) * (float(percentage) / 100))    
+            if recycled < 0:
+                recycled = 0            
+
+            self.weight = weight
+            self.recycled = recycled                                            
+            self.rate_used = rate
+        except:
+            raise ValueError("Oops! That was no valid data. Check data and try again...")    
 
            
 class TicketsRdSchema(Schema):    

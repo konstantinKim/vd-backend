@@ -170,7 +170,8 @@ class TicketsRdUpdate(Resource):
                 resp.statusText = str(e)
                 return resp        
 
-    def delete(self, id):
+    @token_auth.login_required
+    def delete(self, id):        
         HAULER_ID = Security.getHaulerId()
         ticket = TicketsRd.query.filter(TicketsRd.TICKET_RD_ID==id, TicketsRd.HAULER_ID==HAULER_ID).first_or_404()
         try:

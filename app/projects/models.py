@@ -7,7 +7,7 @@ import hashlib
 import os
 from config import APP_ROOT
 
-db = SQLAlchemy()
+db = SQLAlchemy(session_options={"autoflush": False})
 
 class CRUD():   
 
@@ -58,6 +58,40 @@ class TicketsRd(db.Model):
             return (half_path)
         return (path)
 
+class TicketsSr(db.Model):
+    __tablename__ = 'tickets_sr'     
+    TICKET_SR_ID = db.Column(db.Integer, primary_key=True)
+    DID = db.Column(db.Integer)
+    PROJECT_ID = db.Column(db.Integer, db.ForeignKey('projects.PROJECT_ID'), nullable=False)
+    MATERIAL_ID = db.Column(db.Integer, db.ForeignKey('materials.MATERIAL_ID'))
+    CONSTRUCTION_TYPE_ID = db.Column(db.Integer)
+    FACILITY_ID = db.Column(db.Integer, db.ForeignKey('facilities.FACILITY_ID'))
+    ticket = db.Column(db.String(250))
+    weight = db.Column(db.Float())
+    cubic_yards = db.Column(db.Float())
+    description = db.Column(db.Text())
+    inventory = db.Column(db.Text())
+    thedate = db.Column(db.DateTime())
+    thedate_ticket = db.Column(db.DateTime())
+    submitted_by = db.Column(db.String(250))
+    percentage = db.Column(db.Integer)        
+    HAULER_ID = db.Column(db.Integer, nullable=False)            
+    material = db.relationship('Materials', backref="sr_material", lazy='joined')
+    facility = db.relationship('Facilities', backref="sr_facility", lazy='joined')     
+
+    def get_folder(self, half=None):        
+        type = 'tickets'
+        ID = str(self.TICKET_SR_ID)+'SR'
+        m = hashlib.md5()
+        m.update(ID.encode('utf-8'))
+        parts = m.hexdigest()
+        half_path = "/data/extensions_data/"+type+"/"+parts[0]+"/"+parts[1]+"/"+parts[2]+"/"+parts[3]+"/"+parts[4]+"/"+ID+"/"
+        path = APP_ROOT + half_path
+        os.makedirs(path, mode=0o0775, exist_ok=True)
+        if half:
+            return (half_path)
+        return (path)        
+
 class Facilities(db.Model):    
     __tablename__ = 'facilities'     
     FACILITY_ID = db.Column(db.Integer, primary_key=True)
@@ -84,6 +118,7 @@ class Projects(db.Model, CRUD):
     tracking = db.Column(db.String(64), nullable=False)                
     status = db.Column(db.String(250))                
     tickets = db.relationship(TicketsRd, backref="project", lazy='joined' )
+    tickets_sr = db.relationship(TicketsSr, backref="project", lazy='joined' )
     projects_haulers = db.relationship(ProjectsHaulers, backref="hauler_project", lazy='joined')
     projects_debrisbox = db.relationship(ProjectsDebrisbox, backref="debrisbox_project", lazy='joined')
 

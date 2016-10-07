@@ -5,7 +5,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from app.auth.models import token_auth, Security
 import datetime
 
-db = SQLAlchemy()
+db = SQLAlchemy(session_options={"autoflush": False})
 
 class Statistics(): 
     HAULER_ID = -1

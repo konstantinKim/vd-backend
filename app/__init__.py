@@ -29,6 +29,9 @@ def create_app(config_filename):
     from app.ticketsRd.views import tickets_rd_bp
     app.register_blueprint(tickets_rd_bp, url_prefix='/api/v1/tickets_rd')
 
+    from app.ticketsSr.views import tickets_sr_bp
+    app.register_blueprint(tickets_sr_bp, url_prefix='/api/v1/tickets_sr')
+
     from app.materials.views import materials
     app.register_blueprint(materials, url_prefix='/api/v1/materials')
 

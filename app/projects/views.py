@@ -2,12 +2,14 @@ from flask import Blueprint, request, jsonify, make_response
 from app.projects.models import Projects, ProjectsHaulers, ProjectsDebrisbox, ProjectsSchema, TicketsRd, db
 from app.facilities.models import FacilitiesSchema
 from app.ticketsRd.models import TicketsRdSchema
+from app.ticketsSr.models import TicketsSrSchema
 from app.materials.models import MaterialsSchema
 from flask_restful import Api, Resource
 from app.helper.helper import Calc
 from app.auth.models import token_auth, Security
 import json
 import datetime
+import os
 
 from sqlalchemy.exc import SQLAlchemyError
 from marshmallow import ValidationError
@@ -27,6 +29,7 @@ def buildResult(query):
     tickets_count = 0
     total_weight = 0
     total_recycled = 0
+    total_reused = 0
     for ticket in query.tickets:        
         ticketDump = TicketsRdSchema().dump(ticket).data                                
         if ticket.material and ticketDump['data']['attributes']['HAULER_ID'] == HAULER_ID:
@@ -51,10 +54,100 @@ def buildResult(query):
             total_weight += float(ticketDump['weight'])
             total_recycled += float(ticketDump['recycled'])
 
+    reused_types_tickets = []
+    donatedTickets = []
+    reuseTickets = []
+    salvageTickets = []
+    for ticket_sr in query.tickets_sr:        
+        ticketSrDump = TicketsSrSchema().dump(ticket_sr).data                                
+        if ticket_sr.material and ticketSrDump['data']['attributes']['HAULER_ID'] == HAULER_ID:            
+            ticketSrDump = ticketSrDump['data']['attributes']
+            tickets_count += 1
+
+            folder = ticket_sr.get_folder()
+            if os.path.isfile(folder + 'ticket.jpg'):
+                ticket_image = ticket_sr.get_folder(True) + "ticket.jpg"
+            else:
+                ticket_image = ''                
+            if os.path.isfile(folder + 'material.jpg'):
+                ticketSrDump['material_image'] = ticket_sr.get_folder(True) + "material.jpg"
+            else:
+                ticketSrDump['material_image'] = ''                                
+
+            if os.path.isfile(folder + 'material2.jpg'):
+                ticketSrDump['material_image2'] = ticket_sr.get_folder(True) + "material2.jpg"
+            else:
+                ticketSrDump['material_image2'] = ''                                
+
+            if os.path.isfile(folder + 'material3.jpg'):
+                ticketSrDump['material_image3'] = ticket_sr.get_folder(True) + "material3.jpg"
+            else:
+                ticketSrDump['material_image3'] = ''                                
+
+            if os.path.isfile(folder + 'material4.jpg'):
+                ticketSrDump['material_image4'] = ticket_sr.get_folder(True) + "material4.jpg"
+            else:
+                ticketSrDump['material_image4'] = ''                                            
+
+
+            material = MaterialsSchema().dump(ticket_sr.material).data        
+            material = material['data']['attributes']            
+
+            if ticket_sr.facility:
+                facility = FacilitiesSchema().dump(ticket_sr.facility).data                                    
+                ticketSrDump['facility'] = facility['data']['attributes']['name']
+            else:
+                ticketSrDump['facility'] = ''
+
+            inventory = []
+            if ticket_sr.inventory:
+                inventoryQuery = db.engine.execute("SELECT name FROM materials_salvage "+
+                    "WHERE MATERIAL_SALVAGE_ID IN("+str(ticket_sr.inventory)+")")
+
+                salvage_materials = inventoryQuery.fetchall()
+                
+                for m in salvage_materials:
+                    inventory.append(m.name)                        
+            
+            ticketSrDump['salvage_materials'] = ', '.join(inventory)
+            ticketSrDump['units'] = 'tons'            
+
+            ticketSrDump['material'] = material['name']
+            ticketSrDump['image'] = ticket_image            
+            split_date = ticketSrDump['thedate_ticket'].split('T')            
+            ticketSrDump['thedate_ticket'] = split_date[0]
+
+            if not material['MATERIAL_ID'] in m_ids:
+                m_ids.append(material['MATERIAL_ID'])                        
+            
+            if ticketSrDump['CONSTRUCTION_TYPE_ID'] == 18:
+                donatedTickets.append(ticketSrDump)                
+                ticketSrDump['name'] = 'Donated';
+
+            if ticketSrDump['CONSTRUCTION_TYPE_ID'] == 17:
+                reuseTickets.append(ticketSrDump)                
+                ticketSrDump['name'] = 'Reuse OnSite';
+
+            if ticketSrDump['CONSTRUCTION_TYPE_ID'] == 19:
+                salvageTickets.append(ticketSrDump)                
+                ticketSrDump['name'] = 'Salvage for reuse on other project';
+
+            total_weight += float(ticketSrDump['weight'])
+            total_reused += float(ticketSrDump['weight'])
+
+    if len(donatedTickets):
+        reused_types_tickets.append({'name': 'Donated', 'CONSTRUCTION_TYPE_ID': 18, 'tickets': donatedTickets})
+    if len(reuseTickets):
+        reused_types_tickets.append({'name': 'Reuse OnSite', 'CONSTRUCTION_TYPE_ID': 17, 'tickets': reuseTickets})    
+    if len(salvageTickets):
+        reused_types_tickets.append({'name': 'Salvage for reuse on other project', 'CONSTRUCTION_TYPE_ID': 19, 'tickets': salvageTickets})
+
+    result['data']['attributes']['reused_types'] = reused_types_tickets
     result['data']['attributes']['materials_hauled'] = len(m_ids)
     result['data']['attributes']['tickets_count'] = tickets_count
     result['data']['attributes']['total_tons'] = total_weight
     result['data']['attributes']['recycled'] = total_recycled
+    result['data']['attributes']['reused'] = total_reused
     result['data']['attributes']['rate'] = Calc.rate(total_weight, total_recycled)
 
     #append facilities with related tickets to result    

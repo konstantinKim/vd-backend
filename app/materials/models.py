@@ -3,7 +3,7 @@ from marshmallow import validate
 from flask.ext.sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import SQLAlchemyError
 
-db = SQLAlchemy()
+db = SQLAlchemy(session_options={"autoflush": False})
 
 class CRUD():   
 

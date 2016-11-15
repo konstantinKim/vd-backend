@@ -40,13 +40,19 @@ class Haulers(db.Model, CRUD):
            
 class HaulersSchema(Schema):    
     not_blank = validate.Length(min=1, error='Field cannot be blank')    
-    id = fields.Integer(dump_only=True)
-    email = fields.Email(validate=not_blank)    
-    name = fields.String(validate=not_blank)        
+    id = fields.Integer(dump_only=True)    
     HAULER_ID = fields.Integer(primary_key=True)    
+    name = fields.String(validate=not_blank)        
     contact = fields.String()        
- 
-    
+    street = fields.String()        
+    zipcode = fields.String()        
+    debrisbox = fields.String()        
+    hauling = fields.String()        
+    selfhaul = fields.String()            
+    phone = fields.String()        
+    email = fields.Email(validate=not_blank)    
+    url = fields.String()        
+        
      #self links
     def get_top_level_links(self, data, many):
         if many:

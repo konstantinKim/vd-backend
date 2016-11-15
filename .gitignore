@@ -2,5 +2,6 @@
 config.py
 migrations/
 flask-api
+vd-env
 __pycache__
 data/

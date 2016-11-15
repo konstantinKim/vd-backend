@@ -98,7 +98,8 @@ class TicketsRd(db.Model, CRUD):
             file.save(os.path.join(folder, 'ticket'))            
             #Convert to jpg
             if DEBUG:
-                cmd = "convert1 -quality 95 -type truecolor -colorspace RGB -append " + folder + "ticket " + folder + "ticket.jpg"            
+                cmd = "convert -quality 95 -type truecolor -colorspace RGB -append " + folder + "ticket " + folder + "ticket.jpg"
+                #cmd = "convert1 -quality 95 -type truecolor -colorspace RGB -append " + folder + "ticket " + folder + "ticket.jpg"            
             else:
                 cmd = "convert -quality 95 -type truecolor -colorspace RGB -append " + folder + "ticket " + folder + "ticket.jpg"                
             PIPE = subprocess.PIPE

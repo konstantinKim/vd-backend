@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, make_response
-from app.facilities.models import Facilities, FacilitiesSchema, FacilitiesMaterials, db
+from app.facilities.models import Facilities, FacilitiesSchema, FacilitiesMaterials, db, RecyclersSearch
 from flask_restful import Api, Resource
 from app.auth.models import token_auth, Security
 
@@ -41,7 +41,14 @@ class FacilitiesMaterialList(Resource):
 
         results['selected_facilities'] = schema.dump(query, many=True).data
                 
-        return results                        
+        return results
+
+class FacilitiesSearch(Resource):                
+    @token_auth.login_required
+    def get(self, material_id, zipcode, radius):
+        result = RecyclersSearch.find(material_id, zipcode, radius)        
+        return(result)                                
 
 api.add_resource(FacilitiesList, '.json')
 api.add_resource(FacilitiesMaterialList, '/city/<int:city_id>/material/<int:material_id>/project/<int:project_id>.json')
+api.add_resource(FacilitiesSearch, '/material/<int:material_id>/zipcode/<zipcode>/radius/<int:radius>.json')

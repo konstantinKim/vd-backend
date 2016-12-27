@@ -2,6 +2,7 @@ from marshmallow_jsonapi import Schema, fields
 from marshmallow import validate
 from flask.ext.sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import SQLAlchemyError
+from app.helper.helper import Calc
 
 db = SQLAlchemy(session_options={"autoflush": False})
 
@@ -51,7 +52,22 @@ class FacilitiesSchema(Schema):
         type_ = 'facilities'
         
 
-class RecyclersSearch():        
+class RecyclersSearch():
+    
+    def __init__(self, **kwargs):
+        self.LAT = 0
+        self.LON = 0
+        self.distance = 0
+        self.name = ""
+        self.city = ""
+        self.county = ""
+        self.state = ""
+        self.street = ""
+        self.phone = ""
+        self.url = ""
+        self.zipcode = ""
+
+
     def find(MATERIAL_ID, zipcode, radius):
         query = db.engine.execute("SELECT * FROM zipcodes WHERE zipcode >= '"+ zipcode +"' ORDER BY zipcode ASC LIMIT 1")
         zipcode = query.fetchone()        
@@ -68,7 +84,22 @@ class RecyclersSearch():
             WHERE facilities.CITY_ID=cities.CITY_ID AND facilities.enabled='true' " + where_clause_zipcodes + " ORDER BY distance ASC  "  )
 
         data = query.fetchall()
-        print(data)    
-
+        result = []
+        for f in data:
+            rs = RecyclersSearch()
+            rs.LAT = str(f.LAT)
+            rs.LON = str(f.LON)
+            rs.name = f.name
+            rs.city = f.city
+            rs.county = f.county
+            rs.state = f.state
+            rs.distance = Calc.myRound(f.distance) 
+            rs.street = f.street
+            rs.phone = f.phone
+            rs.url = f.url
+            rs.zipcode = f.zipcode
+            result.append(rs.__dict__)        
+        
+        return(result)
 
 

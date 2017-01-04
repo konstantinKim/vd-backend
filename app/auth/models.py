@@ -47,7 +47,7 @@ class Auth():
         
     def login(username, password):
         if len(username) > 0 and len(password) > 0:
-            hauler = Haulers.query.with_entities(Haulers.password, Haulers.HAULER_ID).filter_by(email = username).first()
+            hauler = Haulers.query.with_entities(Haulers.password, Haulers.HAULER_ID).filter_by(email = username, password = password).first()
             if  hauler and len(password) and check_password_hash(generate_password_hash(hauler.password), password):
                 user_token = jwt.dumps( {'HAULER_ID':  hauler.HAULER_ID} )                        
                 return Auth.setToken( hauler.HAULER_ID )

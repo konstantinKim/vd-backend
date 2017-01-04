@@ -44,6 +44,11 @@ class SignUp(Resource):
                 hauler = Haulers.query.get_or_404(HAULER_ID)
                 setattr(hauler, 'password', password)
                 hauler.update()
+
+                hauler = Haulers.query.get_or_404(HAULER_ID)
+                setattr(hauler, 'password', password)
+                hauler.update()
+                
                 token = Auth.setToken(HAULER_ID)                            
                 if token:
                     results = HaulersSchema().dump(hauler).data

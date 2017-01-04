@@ -35,9 +35,10 @@ class SignUp(Resource):
         try:
             params = request.form           
             token = params['token'].strip()
-            password = params['password'].strip()
-            print(token, password)
+            password = params['password'].strip()            
             HAULER_ID = Auth.validateSignupToken(params['token'])
+            print('----------------------------------------------------')
+            print(token, password, HAULER_ID)
 
             if HAULER_ID:
                 hauler = Haulers.query.get_or_404(HAULER_ID)

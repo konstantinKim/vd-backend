@@ -14,8 +14,8 @@ token_auth = HTTPTokenAuth('Bearer')
 @basic_auth.verify_password
 def verify_password(username, password):
     if len(username) > 0 and len(password) > 0:
-        hauler = Haulers.query.with_entities(Haulers.password, Haulers.HAULER_ID).filter_by(email = username).first()
-        if  hauler and check_password_hash(generate_password_hash(hauler.password), password):        
+        hauler = Haulers.query.with_entities(Haulers.password, Haulers.HAULER_ID).filter_by(email = username, password = password).first()
+        if  hauler and hauler.password and check_password_hash(generate_password_hash(hauler.password), password):        
             return True
     return False
 
@@ -45,10 +45,10 @@ class Auth():
         user_token = jwt.dumps( {'HAULER_ID':  HAULER_ID} )                        
         return Auth.find_between( str(user_token), "'", "'" )
         
-    def login(username, password):
-        if len(username) > 0 and len(password) > 0:
-            hauler = Haulers.query.with_entities(Haulers.password, Haulers.HAULER_ID).filter_by(email = username, password = password).first()
-            if  hauler and len(password) and check_password_hash(generate_password_hash(hauler.password), password):
+    def login(username, password):       
+        if len(username) > 0 and len(password) > 0:            
+            hauler = Haulers.query.with_entities(Haulers.password, Haulers.HAULER_ID).filter_by(email = username, password = password).first()            
+            if  hauler and hauler.password and check_password_hash(generate_password_hash(hauler.password), password):
                 user_token = jwt.dumps( {'HAULER_ID':  hauler.HAULER_ID} )                        
                 return Auth.setToken( hauler.HAULER_ID )
         return False

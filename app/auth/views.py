@@ -14,7 +14,7 @@ api = Api(auth)
 
 class Authentiaction(Resource):                
     @basic_auth.login_required
-    def get(self):                                      
+    def get(self):                                                      
         token = Auth.login(request.authorization.username, request.authorization.password)        
         if not token:
             response = make_response("HTTP/1.1 401 Unauthorized", 401)            

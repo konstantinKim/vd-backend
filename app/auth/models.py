@@ -12,7 +12,7 @@ basic_auth = HTTPBasicAuth()
 token_auth = HTTPTokenAuth('Bearer')    
 
 @basic_auth.verify_password
-def verify_password(username, password):
+def verify_password(username, password):    
     if len(username) > 0 and len(password) > 0:
         hauler = Haulers.query.with_entities(Haulers.password, Haulers.HAULER_ID).filter_by(email = username, password = password).first()
         if  hauler and hauler.password and check_password_hash(generate_password_hash(hauler.password), password):        

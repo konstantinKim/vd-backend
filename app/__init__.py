@@ -1,6 +1,7 @@
 from flask import Flask, Response
 from flask_restful import Resource, Api
 from flask_cors import CORS, cross_origin
+from flask.ext.sqlalchemy import SQLAlchemy
 
 class MyResponse(Response):
      default_mimetype = 'application/json'          
@@ -13,8 +14,10 @@ def create_app(config_filename):
     app.config.from_object(config_filename)        
     app.response_class = MyResponse    
     
-    from app.users.models import db
-    db.init_app(app)    
+    # from app.users.models import db
+    # db.init_app(app)
+
+    db = SQLAlchemy(app)            
     
     # Blueprints   
     from app.auth.views import auth
@@ -39,7 +42,7 @@ def create_app(config_filename):
     app.register_blueprint(facilities, url_prefix='/api/v1/facilities')
 
     from app.statistics.views import statistics
-    app.register_blueprint(statistics, url_prefix='/api/v1/statistics')
+    app.register_blueprint(statistics, url_prefix='/api/v1/statistics')    
             
     return app
 

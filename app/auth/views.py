@@ -95,11 +95,15 @@ class UserData(Resource):
         if 'phone_3' in formatPhone:
             results['data']['attributes']['phone_3'] = formatPhone['phone_3']    
         if 'phone_4' in formatPhone:
-            results['data']['attributes']['phone_4'] = formatPhone['phone_4']    
+            results['data']['attributes']['phone_4'] = formatPhone['phone_4']        
 
-
-        #data = { 'HAULER_ID': results['data']['attributes']['HAULER_ID'], 'email': results['data']['attributes']['email'], 'contact': results['data']['attributes']['contact'], 'company': results['data']['attributes']['name']} 
-        #response = make_response(json.dumps(data))        
+        splitPermits = []
+        if results['data']['attributes']['permits']:
+            splitPermits = results['data']['attributes']['permits'].split(',')
+        
+        results['data']['attributes']['permits'] = []
+        for permit in splitPermits:
+            results['data']['attributes']['permits'].append({'name':permit.strip()})               
         
         return (results['data']['attributes'])                        
         #return (response)
@@ -134,10 +138,25 @@ class ConfirmSignUp(Resource):
                 resp = jsonify({"error": str(e)})
                 resp.status_code = 403
                 resp.statusText = str(e)
-                return resp     
+                return resp
+
+class AuthByToken(Resource):                    
+    def get(self, token):       
+        token = Auth.loginByToken(token)        
+        if not token:
+            response = make_response("HTTP/1.1 401 Unauthorized", 401)            
+            return (response)
+        else:
+            HAULER_ID = Security.getHaulerId(token)        
+            query = Haulers.query.get_or_404(HAULER_ID)
+            results = HaulersSchema().dump(query).data
+            data = { 'token': token, 'HAULER_ID': results['data']['attributes']['HAULER_ID'], 'email': results['data']['attributes']['email'], 'contact': results['data']['attributes']['contact'], 'company': results['data']['attributes']['name']} 
+            response = make_response(json.dumps(data))
+            return (response)                     
 
 
 api.add_resource(Authentiaction, '.json')
 api.add_resource(UserData, '/data.json')
 api.add_resource(SignUp, '/signup.json')
 api.add_resource(ConfirmSignUp, '/confirm_signup/<token>.json')
+api.add_resource(AuthByToken, '/token_login/<token>.json')

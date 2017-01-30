@@ -35,7 +35,9 @@ class Haulers(db.Model, CRUD):
     debrisbox = db.Column(db.Enum('true','false'), default='false')        
     cell = db.Column(db.String(250))        
     selfhaul = db.Column(db.Enum('true','false'), default='false')                
-    password = db.Column(db.String(250))                
+    password = db.Column(db.String(250))
+    permits = db.Column(db.String())
+    hours = db.Column(db.String())                
       
            
 class HaulersSchema(Schema):    
@@ -51,7 +53,9 @@ class HaulersSchema(Schema):
     selfhaul = fields.String()            
     phone = fields.String()        
     email = fields.Email(validate=not_blank)    
-    url = fields.String()        
+    url = fields.String()
+    permits = fields.String()
+    hours = fields.String()        
         
      #self links
     def get_top_level_links(self, data, many):

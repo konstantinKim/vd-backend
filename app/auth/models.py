@@ -53,6 +53,17 @@ class Auth():
                 return Auth.setToken( hauler.HAULER_ID )
         return False
 
+    def loginByToken(token):       
+        token = token.strip()
+        if token:            
+            key = "GH_VD_SECRET_vtE7p"            
+            query = db.engine.execute("SELECT HAULER_ID, email, password FROM haulers WHERE MD5(CONCAT(HAULER_ID, email,'" + key + "')) = '"+ token +"'" )
+            hauler = query.fetchone()            
+            if hauler:                                                
+                user_token = jwt.dumps( {'HAULER_ID':  hauler.HAULER_ID} )
+                return Auth.setToken( hauler.HAULER_ID )
+        return False    
+
     def validateSignupToken(token):
         token = token.strip()
         if token:            

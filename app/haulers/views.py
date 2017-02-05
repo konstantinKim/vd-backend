@@ -1,10 +1,17 @@
 from flask import Blueprint, request, jsonify, make_response
+from flask_restful import Api, Resource
+
 from app.auth.models import Auth, basic_auth, token_auth, Security
 from app.haulers.models import Haulers, HaulersSchema, db
-from flask_restful import Api, Resource
+from app.representative.models import Representative
+from app.mail import send_email
+from config import GH_VD_SECRET
  
 from sqlalchemy.exc import SQLAlchemyError
 from marshmallow import ValidationError
+
+import json
+import hashlib
 
 haulers = Blueprint('haulers', __name__)
 # http://marshmallow.readthedocs.org/en/latest/quickstart.html#declaring-schemas
@@ -29,15 +36,48 @@ class HaulersUpdate(Resource):
 
         try:            
             schema.validate(raw_dict)                                    
-            params = raw_dict['data']['attributes']                        
+            params = raw_dict['data']['attributes']                                    
 
-            print('---------------------')
-            print(params)
+            for key, value in params.items():
+                if('reps' == key):                    
+                    reps = json.loads(value)
+                    new_emails = []
+                    if len(reps) > 0:
+                        for rep in reps:
+                            if 'email' in rep: 
+                                new_emails.append(rep['email'])                        
+                    if len(new_emails):
+                        emails = ','.join('"' + item + '"' for item in new_emails)                        
+                        db.engine.execute("DELETE FROM haulers_representative WHERE email NOT IN(" + emails + ") AND HAULER_ID="+ str(HAULER_ID) + "")                                    
+                        query = db.engine.execute("SELECT email FROM haulers_representative WHERE HAULER_ID="+ str(HAULER_ID) + "")
+                        existing_reps = query.fetchall()                        
+                        existing_emails = []
+                        if existing_reps:
+                            for row in existing_reps:
+                                existing_emails.append(row.email)
+                        
+                        for new_email in new_emails:
+                            if new_email not in existing_emails:
+                                representative = Representative(HAULER_ID=HAULER_ID, email=new_email)
+                                representative.add(representative)                                                                
+                                m = hashlib.md5()
+                                hstr = str(representative.id) + representative.email + GH_VD_SECRET
+                                m.update(hstr.encode('utf-8'))
+                                token = m.hexdigest()
 
-            for key, value in params.items():                
-                setattr(hauler, key, value)            
+                                text = "You have been invited to register as a Vendor Representative for  %s <br />" % hauler.name 
+                                text += '<b><a href="http://vd.greenhalosystems.com/signup?token=%s">Please login to complete your registration</a></b> <br /><br />' % token
+                                text += "Already have an account? <a href='http://vd.greenhalosystems.com/login'>Sign in here</a>."
+                                send_email('Vendor Invitation', 'no-reply@greenhalosystems.com', new_email, text)
+                    else:
+                      query = db.engine.execute("DELETE FROM haulers_representative WHERE HAULER_ID="+ str(HAULER_ID) + "")                                  
 
-            hauler.update()
+
+                            
+                setattr(hauler, key, value)
+                                        
+
+            hauler.update()            
             results = schema.dump(hauler).data    
 
             return results['data']['attributes'], 201

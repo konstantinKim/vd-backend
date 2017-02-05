@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify, make_response
 from app.auth.models import Auth, basic_auth, token_auth, Security
-from app.haulers.models import Haulers, HaulersSchema
+from app.haulers.models import Haulers, HaulersSchema, db
+from app.representative.models import Representative, RepresentativeSchema
 from app.helper.helper import Format
 from flask_restful import Api, Resource
 import json
@@ -36,15 +37,13 @@ class SignUp(Resource):
             params = request.form           
             token = params['token'].strip()
             password = params['password'].strip()            
-            HAULER_ID = Auth.validateSignupToken(params['token'])
-            print('----------------------------------------------------')
-            print(token, password, HAULER_ID)
+            HAULER_ID = Auth.validateSignupToken(params['token'])            
 
             if HAULER_ID:
                 hauler = Haulers.query.get_or_404(HAULER_ID)
                 setattr(hauler, 'password', password)
                 hauler.update()
-
+                
                 hauler = Haulers.query.get_or_404(HAULER_ID)
                 setattr(hauler, 'password', password)
                 hauler.update()
@@ -54,7 +53,25 @@ class SignUp(Resource):
                     results = HaulersSchema().dump(hauler).data
                     data = { 'token': token, 'HAULER_ID': results['data']['attributes']['HAULER_ID'], 'email': results['data']['attributes']['email'], 'contact': results['data']['attributes']['contact'], 'company': results['data']['attributes']['name']} 
                     response = make_response(json.dumps(data))
-                    return (response)                   
+                    return (response)
+            else: # Reps
+                REPS_ID = Auth.validateRepsSignupToken(token)
+                if REPS_ID:
+                    reps = Representative.query.get_or_404(REPS_ID)
+                    setattr(reps, 'password', password)
+                    reps.update()
+
+                    reps = Representative.query.get_or_404(REPS_ID)
+                    setattr(reps, 'password', password)
+                    reps.update()
+
+                    hauler = Haulers.query.get_or_404(reps.HAULER_ID)
+                    token = Auth.setToken(hauler.HAULER_ID)
+                    if token:
+                        results = HaulersSchema().dump(hauler).data
+                        data = { 'token': token, 'HAULER_ID': results['data']['attributes']['HAULER_ID'], 'email': reps.email, 'contact': results['data']['attributes']['contact'], 'company': results['data']['attributes']['name']} 
+                        response = make_response(json.dumps(data))
+                        return (response)
 
             response = make_response("HTTP/1.1 403 Forbidden", 403)            
             return (response)
@@ -104,12 +121,22 @@ class UserData(Resource):
         results['data']['attributes']['permits'] = []
         for permit in splitPermits:
             results['data']['attributes']['permits'].append({'name':permit.strip()})               
+
+        reps = []
+        query = db.engine.execute("SELECT email, id FROM haulers_representative WHERE HAULER_ID="+ str(HAULER_ID) + "")        
+        #query = Representative.query.filter(Representative.HAULER_ID==HAULER_ID).all()        
+        data = query.fetchall()
+        if data:
+            for rep in data:                                                        
+                reps.append({'email': rep.email, 'id': rep.id})
+        results['data']['attributes']['reps'] = reps
+        
         
         return (results['data']['attributes'])                        
         #return (response)
                         
 class ConfirmSignUp(Resource):                    
-    def get(self, token):       
+    def get(self, token):               
         try:
             HAULER_ID = Auth.validateSignupToken(token)
             if HAULER_ID:
@@ -117,7 +144,16 @@ class ConfirmSignUp(Resource):
                 results = HaulersSchema().dump(hauler).data
                 data = { 'token': token, 'HAULER_ID': results['data']['attributes']['HAULER_ID'], 'email': results['data']['attributes']['email'], 'contact': results['data']['attributes']['contact'], 'company': results['data']['attributes']['name']} 
                 response = make_response(json.dumps(data))
-                return (response)                   
+                return (response)
+            else: #Reps                 
+                REPS_ID = Auth.validateRepsSignupToken(token)
+                if REPS_ID:
+                    reps = Representative.query.get_or_404(REPS_ID)
+                    hauler = Haulers.query.get_or_404(reps.HAULER_ID)
+                    results = HaulersSchema().dump(hauler).data                    
+                    data = { 'token': token, 'HAULER_ID': results['data']['attributes']['HAULER_ID'], 'email': reps.email, 'contact': results['data']['attributes']['contact'], 'company': results['data']['attributes']['name']} 
+                    response = make_response(json.dumps(data))
+                    return (response)                       
 
             response = make_response("HTTP/1.1 403 Forbidden", 403)            
             return (response)    

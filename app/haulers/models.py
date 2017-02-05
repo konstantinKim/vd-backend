@@ -18,6 +18,11 @@ class CRUD():
         db.session.delete(resource)
         return db.session.commit()
 
+class Representative(db.Model, CRUD):    
+    __tablename__ = 'haulers_representative'     
+    id = db.Column(db.Integer, primary_key=True)
+    HAULER_ID = db.Column(db.Integer, db.ForeignKey('haulers.HAULER_ID'), nullable=False)
+
 class Haulers(db.Model, CRUD):
     __tablename__ = 'haulers'     
     HAULER_ID = db.Column(db.Integer, primary_key=True)

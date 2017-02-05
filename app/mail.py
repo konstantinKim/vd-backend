@@ -18,7 +18,6 @@ def send_email(subject, from_address, to_address, text):
     msg['To'] = to_address
     msg['Subject'] = subject
     text = text    
-    
     part1 = MIMEText(text, 'html')
     msg.attach(part1)
     thr = Thread(target=send_async_email, args=[msg])

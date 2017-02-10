@@ -42,7 +42,10 @@ def create_app(config_filename):
     app.register_blueprint(facilities, url_prefix='/api/v1/facilities')
 
     from app.statistics.views import statistics
-    app.register_blueprint(statistics, url_prefix='/api/v1/statistics')    
+    app.register_blueprint(statistics, url_prefix='/api/v1/statistics')
+
+    from app.haulersImages.views import haulers_images_bp
+    app.register_blueprint(haulers_images_bp, url_prefix='/api/v1/haulers_images')    
             
     return app
 

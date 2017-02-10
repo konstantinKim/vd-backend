@@ -120,7 +120,15 @@ class UserData(Resource):
         
         results['data']['attributes']['permits'] = []
         for permit in splitPermits:
-            results['data']['attributes']['permits'].append({'name':permit.strip()})               
+            results['data']['attributes']['permits'].append({'name':permit.strip()})
+
+        splitAssociations = []
+        if results['data']['attributes']['associations']:
+            splitAssociations = results['data']['attributes']['associations'].split(',')
+        
+        results['data']['attributes']['associations'] = []
+        for ass in splitAssociations: #)
+            results['data']['attributes']['associations'].append({'name':ass.strip()})                   
 
         reps = []
         query = db.engine.execute("SELECT email, id FROM haulers_representative WHERE HAULER_ID="+ str(HAULER_ID) + "")        

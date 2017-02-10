@@ -43,6 +43,7 @@ class Haulers(db.Model, CRUD):
     password = db.Column(db.String(250))
     permits = db.Column(db.String())
     hours = db.Column(db.String())                
+    associations = db.Column(db.String())                
       
            
 class HaulersSchema(Schema):    
@@ -60,7 +61,8 @@ class HaulersSchema(Schema):
     email = fields.Email(validate=not_blank)    
     url = fields.String()
     permits = fields.String()
-    hours = fields.String()        
+    hours = fields.String()
+    associations = fields.String()        
         
      #self links
     def get_top_level_links(self, data, many):

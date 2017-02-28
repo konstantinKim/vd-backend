@@ -19,10 +19,9 @@ class HaulersImagesList(Resource):
     @token_auth.login_required
     def get(self):
         HAULER_ID = Security.getHaulerId()
+        db.session.commit()
         query = db.engine.execute("SELECT * FROM haulers_images WHERE HAULER_ID="+ str(HAULER_ID) + "")
-        query = query.fetchall()
-        print('=====================')
-        print(len(query))        
+        query = query.fetchall()                
         query = HaulersImages.query.filter(HaulersImages.HAULER_ID==HAULER_ID).all()                
         results = schema.dump(query, many=True).data        
         return results

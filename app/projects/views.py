@@ -162,7 +162,11 @@ def buildResult(query):
                 fids.append(facility['FACILITY_ID'])
                 facility['tickets'] = tf[facility['FACILITY_ID']]
                 result['data']['attributes']['facilities'].append(facility)
-
+    
+    city = query.city
+    print('============================================');
+    print(city.name);
+    result['data']['attributes']['city'] = city.name    
 
     return result['data']['attributes']        
 

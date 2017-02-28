@@ -27,6 +27,11 @@ class Materials(db.Model, CRUD):
     MATERIAL_ID = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(250), unique=True, nullable=False)       
 
+class Cities(db.Model, CRUD):    
+    __tablename__ = 'cities'     
+    CITY_ID = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(250), nullable=False)           
+
 class TicketsRd(db.Model):
     __tablename__ = 'tickets_rd'     
     TICKET_RD_ID = db.Column(db.Integer, primary_key=True)
@@ -112,16 +117,18 @@ class ProjectsDebrisbox(db.Model):
 
 class Projects(db.Model, CRUD):    
     PROJECT_ID = db.Column(db.Integer, primary_key=True)
-    CITY_ID = db.Column(db.Integer)    
+    CITY_ID = db.Column(db.Integer, db.ForeignKey('cities.CITY_ID'))    
     name = db.Column(db.String(250), unique=True, nullable=False)   
     street = db.Column(db.String(250), unique=True, nullable=False)  
+    state = db.Column(db.String(10))
+    zipcode = db.Column(db.String(12))    
     tracking = db.Column(db.String(64), nullable=False)                
-    status = db.Column(db.String(250))                
+    status = db.Column(db.String(250))                    
     tickets = db.relationship(TicketsRd, backref="project", lazy='joined' )
     tickets_sr = db.relationship(TicketsSr, backref="project", lazy='joined' )
     projects_haulers = db.relationship(ProjectsHaulers, backref="hauler_project", lazy='joined')
     projects_debrisbox = db.relationship(ProjectsDebrisbox, backref="debrisbox_project", lazy='joined')
-
+    city = db.relationship(Cities, backref="project", lazy='joined' )
         
            
 class ProjectsSchema(Schema):    
@@ -130,7 +137,9 @@ class ProjectsSchema(Schema):
     PROJECT_ID = fields.Integer(primary_key=True)    
     CITY_ID = fields.Integer()        
     name = fields.String(validate=not_blank)        
-    street = fields.String(validate=not_blank)        
+    street = fields.String(validate=not_blank)
+    state = fields.String()
+    zipcode = fields.String()        
     tracking = fields.String(validate=not_blank)           
      
     

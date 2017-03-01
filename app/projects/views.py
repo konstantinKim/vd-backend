@@ -173,8 +173,7 @@ def buildResult(query):
 class ProjectsList(Resource):    
         
     @token_auth.login_required
-    def get(self):                
-        db.session.commit()
+    def get(self):                        
         HAULER_ID = Security.getHaulerId()        
         query = Projects.query.filter(ProjectsHaulers.HAULER_ID==HAULER_ID, ProjectsHaulers.PROJECT_ID==Projects.PROJECT_ID, Projects.status=='approved').all()        
         haulersIds = []
@@ -189,15 +188,15 @@ class ProjectsList(Resource):
         results = []
         for project in query:                                    
             results.append(buildResult(project))                             
-
+        
+        db.session.commit()
         return results                    
         #return(json.dumps([{"id": 9,"name": "XXXUPDCompleted project name","address": "project address","number": "01","company": "Vendor Company","materials_hauled": "1","total_tons": "0","recycled": "0","rate": "50","tickets_count": "5","facilities": [{"id": 9,"name": "Facility 1","tickets": [{"id": 1,"ticket": "ticket number","material": "Material Name","submitted_by": "Submitted By","weight": "100","recycled": "50","rate": "90","date": "7/26/2016"}, {"id": 2,"ticket": "ticket number","material": "Material Name","submitted_by": "Submitted By","weight": "100","recycled": "50","rate": "90","date": "7/26/2016"}]}]}]))
 
 class CompletedList(Resource):    
         
     @token_auth.login_required
-    def get(self):
-        db.session.commit()                        
+    def get(self):                                
         HAULER_ID = Security.getHaulerId()        
         query = Projects.query.filter(ProjectsHaulers.HAULER_ID==HAULER_ID, ProjectsHaulers.PROJECT_ID==Projects.PROJECT_ID, Projects.status=='completed').all()        
         
@@ -214,14 +213,14 @@ class CompletedList(Resource):
         for project in query:                                    
             results.append(buildResult(project))             
         
+        db.session.commit()
         return results                    
         #return(json.dumps([{"id": 9,"name": "XXXUPDCompleted project name","address": "project address","number": "01","company": "Vendor Company","materials_hauled": "1","total_tons": "0","recycled": "0","rate": "50","tickets_count": "5","facilities": [{"id": 9,"name": "Facility 1","tickets": [{"id": 1,"ticket": "ticket number","material": "Material Name","submitted_by": "Submitted By","weight": "100","recycled": "50","rate": "90","date": "7/26/2016"}, {"id": 2,"ticket": "ticket number","material": "Material Name","submitted_by": "Submitted By","weight": "100","recycled": "50","rate": "90","date": "7/26/2016"}]}]}]))
 
 class CompletedCount(Resource):    
         
     @token_auth.login_required
-    def get(self):
-        db.session.commit()                        
+    def get(self):                                
         HAULER_ID = Security.getHaulerId()        
         query = Projects.query.filter(ProjectsHaulers.HAULER_ID==HAULER_ID, ProjectsHaulers.PROJECT_ID==Projects.PROJECT_ID, Projects.status=='completed').all()        
         
@@ -235,7 +234,8 @@ class CompletedCount(Resource):
                 haulersIds.append(project.PROJECT_ID)
 
         results = len(haulersIds)        
-        
+        db.session.commit()
+
         return results                    
         #return(json.dumps([{"id": 9,"name": "XXXUPDCompleted project name","address": "project address","number": "01","company": "Vendor Company","materials_hauled": "1","total_tons": "0","recycled": "0","rate": "50","tickets_count": "5","facilities": [{"id": 9,"name": "Facility 1","tickets": [{"id": 1,"ticket": "ticket number","material": "Material Name","submitted_by": "Submitted By","weight": "100","recycled": "50","rate": "90","date": "7/26/2016"}, {"id": 2,"ticket": "ticket number","material": "Material Name","submitted_by": "Submitted By","weight": "100","recycled": "50","rate": "90","date": "7/26/2016"}]}]}]))
 
@@ -247,8 +247,7 @@ class ProjectsUpdate(Resource):
         query = Projects.query.get_or_404(id)                                
         return buildResult(query)
     
-    def patch(self, id):
-        db.session.commit()
+    def patch(self, id):        
         project = Projects.query.get_or_404(id)
         raw_dict = request.get_json(force=True)
         
@@ -259,7 +258,8 @@ class ProjectsUpdate(Resource):
                 
                 setattr(project, key, value)
           
-            project.update()            
+            project.update()
+            db.session.commit()            
             return self.get(id)
             
         except ValidationError as err:
@@ -273,11 +273,11 @@ class ProjectsUpdate(Resource):
                 resp.status_code = 401
                 return resp
              
-    def delete(self, id):
-        db.session.commit()
+    def delete(self, id):        
         project = Projects.query.get_or_404(id)
         try:
             delete = user.delete(user)
+            db.session.commit()
             response = make_response()
             response.status_code = 204
             return response

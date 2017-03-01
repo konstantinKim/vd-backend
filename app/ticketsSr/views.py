@@ -21,7 +21,7 @@ class TicketsSrList(Resource):
     @token_auth.login_required
     def post(self):                   
         raw_dict = {"data": {"attributes": request.form, "type": "tickets_sr"}}                
-        try:            
+        try:                        
             schema.validate(raw_dict)                                                
             params = raw_dict['data']['attributes']                                                                                
 
@@ -147,7 +147,8 @@ class TicketsSrList(Resource):
             results['data']['attributes']['thedate_ticket'] = split_date[0]
 
             syncProject(ticket.PROJECT_ID)
-
+            db.session.commit()
+            
             return results['data']['attributes'], 201
             
         except ValidationError as err:
@@ -169,7 +170,7 @@ class TicketsSrList(Resource):
 
 class TicketsSrUpdate(Resource):
     @token_auth.login_required
-    def patch(self, id):
+    def patch(self, id):        
         HAULER_ID = Security.getHaulerId()        
         ticket = TicketsSr.query.filter(TicketsSr.TICKET_SR_ID==id, TicketsSr.HAULER_ID==HAULER_ID).first_or_404()
         raw_dict = {"data": {"attributes": request.form, "type": "tickets_sr"}}                
@@ -182,7 +183,8 @@ class TicketsSrUpdate(Resource):
             
 
             ticket.setRecyclingRates(params)
-            ticket.update()                                                          
+            ticket.update()
+            db.session.commit()                                                          
             
             if 'image' in request.files:
                 file = request.files['image']
@@ -277,6 +279,7 @@ class TicketsSrUpdate(Resource):
             results['data']['attributes']['thedate_ticket'] = split_date[0]
 
             syncProject(ticket.PROJECT_ID)
+            db.session.commit()
             return results['data']['attributes'], 201
             
         except ValidationError as err:
@@ -297,12 +300,13 @@ class TicketsSrUpdate(Resource):
                 return resp        
 
     @token_auth.login_required
-    def delete(self, id):        
+    def delete(self, id):                
         HAULER_ID = Security.getHaulerId()
         ticket = TicketsSr.query.filter(TicketsSr.TICKET_SR_ID==id, TicketsSr.HAULER_ID==HAULER_ID).first_or_404()
         try:            
-            delete = ticket.delete(ticket)
+            delete = ticket.delete(ticket)            
             syncProject(ticket.PROJECT_ID)
+            db.session.commit()
             response = make_response()
             response.status_code = 204
             return response

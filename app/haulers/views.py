@@ -80,6 +80,8 @@ class HaulersUpdate(Resource):
             hauler.update()            
             results = schema.dump(hauler).data    
 
+            db.session.commit()
+
             return results['data']['attributes'], 201
         
 

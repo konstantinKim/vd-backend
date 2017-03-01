@@ -25,8 +25,7 @@ class TicketsRdList(Resource):
     @token_auth.login_required
     def post(self):                   
         raw_dict = {"data": {"attributes": request.form, "type": "tickets_rd"}}                
-        try:
-                db.session.commit()
+        try:                
                 schema.validate(raw_dict)                                                
                 params = raw_dict['data']['attributes']                                                            
                 
@@ -79,7 +78,8 @@ class TicketsRdList(Resource):
                 results['data']['attributes']['thedate'] = split_date[0]
 
                 syncProject(ticket.PROJECT_ID)
-
+                db.session.commit()
+                
                 return results['data']['attributes'], 201
             
         except ValidationError as err:
@@ -101,8 +101,7 @@ class TicketsRdList(Resource):
 
 class TicketsRdUpdate(Resource):
     @token_auth.login_required
-    def patch(self, id):
-        db.session.commit()
+    def patch(self, id):        
         HAULER_ID = Security.getHaulerId()        
         ticket = TicketsRd.query.filter(TicketsRd.TICKET_RD_ID==id, TicketsRd.HAULER_ID==HAULER_ID).first_or_404()
         raw_dict = {"data": {"attributes": request.form, "type": "tickets_rd"}}                
@@ -153,6 +152,7 @@ class TicketsRdUpdate(Resource):
             results['data']['attributes']['thedate'] = split_date[0]
 
             syncProject(ticket.PROJECT_ID)
+            db.session.commit()
             return results['data']['attributes'], 201
             
         except ValidationError as err:
@@ -178,11 +178,11 @@ class TicketsRdUpdate(Resource):
         ticket = TicketsRd.query.filter(TicketsRd.TICKET_RD_ID==id, TicketsRd.HAULER_ID==HAULER_ID).first_or_404()
         try:
             ticket.setRecyclingRates()
-            delete = ticket.delete(ticket)
-            db.session.commit()
+            delete = ticket.delete(ticket)            
             syncProject(ticket.PROJECT_ID)
             response = make_response()
             response.status_code = 204
+            db.session.commit()
             return response
             
         except SQLAlchemyError as e:

@@ -18,13 +18,15 @@ class Authentiaction(Resource):
     def get(self):                                                      
         token = Auth.login(request.authorization.username, request.authorization.password)        
         if not token:
-            response = make_response("HTTP/1.1 401 Unauthorized", 401)            
+            response = make_response("HTTP/1.1 401 Unauthorized", 401)
+            db.session.commit()            
             return (response)
         else:
             HAULER_ID = Security.getHaulerId(token)        
             query = Haulers.query.get_or_404(HAULER_ID)
             results = HaulersSchema().dump(query).data
             data = { 'token': token, 'HAULER_ID': results['data']['attributes']['HAULER_ID'], 'email': results['data']['attributes']['email'], 'contact': results['data']['attributes']['contact'], 'company': results['data']['attributes']['name']} 
+            db.session.commit()
             response = make_response(json.dumps(data))
             return (response)                
 
@@ -54,6 +56,7 @@ class SignUp(Resource):
                     results = HaulersSchema().dump(hauler).data
                     data = { 'token': token, 'HAULER_ID': results['data']['attributes']['HAULER_ID'], 'email': results['data']['attributes']['email'], 'contact': results['data']['attributes']['contact'], 'company': results['data']['attributes']['name']} 
                     response = make_response(json.dumps(data))
+                    db.session.commit()
                     return (response)
             else: # Reps
                 REPS_ID = Auth.validateRepsSignupToken(token)
@@ -72,6 +75,7 @@ class SignUp(Resource):
                         results = HaulersSchema().dump(hauler).data
                         data = { 'token': token, 'HAULER_ID': results['data']['attributes']['HAULER_ID'], 'email': reps.email, 'contact': results['data']['attributes']['contact'], 'company': results['data']['attributes']['name']} 
                         response = make_response(json.dumps(data))
+                        db.session.commit()
                         return (response)
 
             response = make_response("HTTP/1.1 403 Forbidden", 403)            
@@ -140,7 +144,7 @@ class UserData(Resource):
                 reps.append({'email': rep.email, 'id': rep.id})
         results['data']['attributes']['reps'] = reps
         
-        
+        db.session.commit()
         return (results['data']['attributes'])                        
         #return (response)
                         
@@ -153,6 +157,7 @@ class ConfirmSignUp(Resource):
                 results = HaulersSchema().dump(hauler).data
                 data = { 'token': token, 'HAULER_ID': results['data']['attributes']['HAULER_ID'], 'email': results['data']['attributes']['email'], 'contact': results['data']['attributes']['contact'], 'company': results['data']['attributes']['name']} 
                 response = make_response(json.dumps(data))
+                db.session.commit()
                 return (response)
             else: #Reps                 
                 REPS_ID = Auth.validateRepsSignupToken(token)
@@ -162,9 +167,11 @@ class ConfirmSignUp(Resource):
                     results = HaulersSchema().dump(hauler).data                    
                     data = { 'token': token, 'HAULER_ID': results['data']['attributes']['HAULER_ID'], 'email': reps.email, 'contact': results['data']['attributes']['contact'], 'company': results['data']['attributes']['name']} 
                     response = make_response(json.dumps(data))
+                    db.session.commit()
                     return (response)                       
 
-            response = make_response("HTTP/1.1 403 Forbidden", 403)            
+            response = make_response("HTTP/1.1 403 Forbidden", 403)
+            db.session.commit()            
             return (response)    
 
 
@@ -190,6 +197,7 @@ class AuthByToken(Resource):
         token = Auth.loginByToken(token)        
         if not token:
             response = make_response("HTTP/1.1 401 Unauthorized", 401)            
+            db.session.commit()
             return (response)
         else:
             HAULER_ID = Security.getHaulerId(token)        
@@ -197,6 +205,7 @@ class AuthByToken(Resource):
             results = HaulersSchema().dump(query).data
             data = { 'token': token, 'HAULER_ID': results['data']['attributes']['HAULER_ID'], 'email': results['data']['attributes']['email'], 'contact': results['data']['attributes']['contact'], 'company': results['data']['attributes']['name']} 
             response = make_response(json.dumps(data))
+            db.session.commit()
             return (response)                     
 
 

@@ -174,6 +174,7 @@ class ProjectsList(Resource):
         
     @token_auth.login_required
     def get(self):                
+        db.session.commit()
         HAULER_ID = Security.getHaulerId()        
         query = Projects.query.filter(ProjectsHaulers.HAULER_ID==HAULER_ID, ProjectsHaulers.PROJECT_ID==Projects.PROJECT_ID, Projects.status=='approved').all()        
         haulersIds = []
@@ -195,7 +196,8 @@ class ProjectsList(Resource):
 class CompletedList(Resource):    
         
     @token_auth.login_required
-    def get(self):                        
+    def get(self):
+        db.session.commit()                        
         HAULER_ID = Security.getHaulerId()        
         query = Projects.query.filter(ProjectsHaulers.HAULER_ID==HAULER_ID, ProjectsHaulers.PROJECT_ID==Projects.PROJECT_ID, Projects.status=='completed').all()        
         
@@ -218,7 +220,8 @@ class CompletedList(Resource):
 class CompletedCount(Resource):    
         
     @token_auth.login_required
-    def get(self):                        
+    def get(self):
+        db.session.commit()                        
         HAULER_ID = Security.getHaulerId()        
         query = Projects.query.filter(ProjectsHaulers.HAULER_ID==HAULER_ID, ProjectsHaulers.PROJECT_ID==Projects.PROJECT_ID, Projects.status=='completed').all()        
         
@@ -240,10 +243,12 @@ class ProjectsUpdate(Resource):
     
     @token_auth.login_required
     def get(self, id):
+        db.session.commit()
         query = Projects.query.get_or_404(id)                                
         return buildResult(query)
     
     def patch(self, id):
+        db.session.commit()
         project = Projects.query.get_or_404(id)
         raw_dict = request.get_json(force=True)
         
@@ -269,6 +274,7 @@ class ProjectsUpdate(Resource):
                 return resp
              
     def delete(self, id):
+        db.session.commit()
         project = Projects.query.get_or_404(id)
         try:
             delete = user.delete(user)

@@ -24,7 +24,7 @@ class CarbonFootprint(Resource):
         Stats = Statistics(dateFrom = dateFrom, dateTo = dateTo)
         carbonFootprint = Stats.carbonFootprint()                
                         
-        return(carbonFootprint.__dict__)        \
+        return(carbonFootprint.__dict__) 
 
 class MaterialsRecycled(Resource):    
     @token_auth.login_required

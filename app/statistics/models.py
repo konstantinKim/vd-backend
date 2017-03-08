@@ -282,6 +282,7 @@ class Statistics():
                 
 
     def recyclingTotals(self):
+        db.session.commit()
         clause_rd = self.dateFilter()
         clause_sr = self.dateFilter('sr')
         #projectsIdsHavingTickets = self.getProjectsIdsHavingTickets()
@@ -398,6 +399,7 @@ class Statistics():
         return (self)
 
     def carbonFootprint(self):
+        db.session.commit()
         clause_rd = self.dateFilter()
         clause_sr = self.dateFilter('sr')
         projectIds = self.getProjectsIds()        
@@ -445,6 +447,7 @@ class Statistics():
         return (self)     
 
     def materialsRecycled(self):
+        db.session.commit()
         clause_rd = self.dateFilter()
         clause_sr = self.dateFilter('sr')        
 
@@ -544,6 +547,7 @@ class Statistics():
         return (self)
 
     def facilitiesUsed(self):
+        db.session.commit()
         clause_rd = self.dateFilter()
         clause_sr = self.dateFilter('sr')        
 
@@ -643,6 +647,7 @@ class Statistics():
         return (self)        
 
     def projectTypes(self):
+        db.session.commit()
         clause_rd = self.dateFilter()
         clause_sr = self.dateFilter('sr')        
 
@@ -742,6 +747,7 @@ class Statistics():
         return (self)    
 
     def buildingTypes(self):
+        db.session.commit()
         clause_rd = self.dateFilter()
         clause_sr = self.dateFilter('sr')        
 
@@ -841,6 +847,7 @@ class Statistics():
         return (self)        
 
     def haulingTypes(self):
+        db.session.commit()
         clause_rd = self.dateFilter()
         clause_sr = self.dateFilter('sr')
         clause_project = self.dateFilter('project')

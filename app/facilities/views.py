@@ -22,7 +22,8 @@ class FacilitiesList(Resource):
 
 class FacilitiesMaterialList(Resource):                
     @token_auth.login_required
-    def get(self, city_id, material_id, project_id):        
+    def get(self, city_id, material_id, project_id): 
+        db.session.commit()       
         #query = Facilities.query.filter().all()        
         #results = schema.dump(query, many=True).data
         #print(material_id)
@@ -46,6 +47,7 @@ class FacilitiesMaterialList(Resource):
 class FacilitiesSearch(Resource):                
     @token_auth.login_required
     def get(self, material_id, zipcode, radius):
+        db.session.commit()
         result = RecyclersSearch.find(material_id, zipcode, radius)        
         return(result)                                
 

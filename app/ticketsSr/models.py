@@ -130,14 +130,14 @@ class TicketsSr(db.Model, CRUD):
             else:
                 raise ValueError("Invalid Material")
 
-            weight = self.weight        
-            cubic_yards = Decimal(weight) / density
+            weight = Decimal(self.weight)        
+            cubic_yards = weight / density
 
             if params['units'] == 'yards':
                 cubic_yards = weight
                 weight = weight * density
             if params['units'] == 'pounds':
-                weight = weight / 2000
+                weight = weight / 2000                
                 cubic_yards = weight / density
             if params['units'] == 'metric_tons':
                 weight = weight * 1.10231
@@ -150,9 +150,10 @@ class TicketsSr(db.Model, CRUD):
                 weight = pounds / 2000
                 cubic_yards = weight / density        
 
-            self.weight = weight        
+            self.weight = weight                    
             self.cubic_yards = cubic_yards
-        except:
+        except Exception as e:
+            print(e)
             raise ValueError("Oops! That was no valid data. Check data and try again...")
 
 

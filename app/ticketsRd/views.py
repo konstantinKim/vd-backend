@@ -67,12 +67,27 @@ class TicketsRdList(Resource):
                 #Set Facility Name
                 facility = query.facility
                 if facility:
+                    city = facility.city
+                    county = city.county
                     facility = FacilitiesSchema().dump(facility).data
-                    facility = facility['data']['attributes']['name']
+                    facility_street = facility['data']['attributes']['street']
+                    facility_zipcode = facility['data']['attributes']['zipcode']
+                    facility_name = facility['data']['attributes']['name']
+                    facility_city = city.name
+                    facility_state = county.state                    
                 else:    
-                    facility = '' 
+                    facility_name = '' 
+                    facility_city = ''
+                    facility_state = ''
+                    facility_street = ''
+                    facility_zipcode = ''
 
-                results['data']['attributes']['facility'] = facility
+                results['data']['attributes']['facility'] = facility_name
+                results['data']['attributes']['facility_street'] = facility_street
+                results['data']['attributes']['facility_zipcode'] = facility_zipcode
+                results['data']['attributes']['facility_city'] = facility_city
+                results['data']['attributes']['facility_state'] = facility_state
+
                 results['data']['attributes']['image'] = ticket.get_folder(True) + "ticket.jpg"
                 split_date = results['data']['attributes']['thedate'].split('T')
                 results['data']['attributes']['thedate'] = split_date[0]
@@ -141,12 +156,27 @@ class TicketsRdUpdate(Resource):
             #Set Facility Name
             facility = query.facility
             if facility:
+                city = facility.city
+                county = city.county
                 facility = FacilitiesSchema().dump(facility).data
-                facility = facility['data']['attributes']['name']
+                facility_street = facility['data']['attributes']['street']
+                facility_zipcode = facility['data']['attributes']['zipcode']
+                facility_name = facility['data']['attributes']['name']
+                facility_city = city.name
+                facility_state = county.state                    
             else:    
-                facility = '' 
+                facility_name = '' 
+                facility_city = ''
+                facility_state = ''
+                facility_street = ''
+                facility_zipcode = ''
 
-            results['data']['attributes']['facility'] = facility
+            results['data']['attributes']['facility'] = facility_name
+            results['data']['attributes']['facility_street'] = facility_street
+            results['data']['attributes']['facility_zipcode'] = facility_zipcode
+            results['data']['attributes']['facility_city'] = facility_city
+            results['data']['attributes']['facility_state'] = facility_state 
+            
             results['data']['attributes']['image'] = ticket.get_folder(True) + "ticket.jpg?v=" + str(time.time())
             split_date = results['data']['attributes']['thedate'].split('T')
             results['data']['attributes']['thedate'] = split_date[0]

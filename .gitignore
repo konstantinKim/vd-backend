@@ -5,3 +5,5 @@ flask-api
 vd-env
 __pycache__
 data/
+.DS_Store
+data/extensions_data/*

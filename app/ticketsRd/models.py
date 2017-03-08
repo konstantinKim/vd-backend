@@ -2,6 +2,7 @@ from marshmallow_jsonapi import Schema, fields
 from marshmallow import validate, ValidationError
 from flask.ext.sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import SQLAlchemyError
+from decimal import Decimal
 import datetime
 from config import APP_ROOT, DEBUG
 import hashlib
@@ -23,10 +24,27 @@ class CRUD():
         db.session.delete(resource)
         return db.session.commit()
 
+class Counties(db.Model, CRUD):    
+    __tablename__ = 'counties'     
+    COUNTY_ID = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(250), nullable=False)
+    state = db.Column(db.String(250))
+
+class Cities(db.Model, CRUD):    
+    __tablename__ = 'cities'     
+    CITY_ID = db.Column(db.Integer, primary_key=True)
+    COUNTY_ID = db.Column(db.Integer, db.ForeignKey('counties.COUNTY_ID'))
+    name = db.Column(db.String(250), nullable=False)
+    county = db.relationship(Counties, backref="city", lazy='joined' )        
+
 class Facilities(db.Model):    
     __tablename__ = 'facilities'     
     FACILITY_ID = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(250), unique=True, nullable=False)        
+    name = db.Column(db.String(250), unique=True, nullable=False)
+    street = db.Column(db.String(250))
+    zipcode = db.Column(db.String(250))
+    CITY_ID = db.Column(db.Integer, db.ForeignKey('cities.CITY_ID'))           
+    city = db.relationship(Cities, backref="facility", lazy='joined' )         
 
 class Materials(db.Model):    
     __tablename__ = 'materials'     
@@ -158,12 +176,12 @@ class TicketsRd(db.Model, CRUD):
             else:
                 raise ValueError("Invalid Material")
 
-            weight = self.weight                                                
+            weight = Decimal(self.weight)                                                            
 
             if self.units == 'yards':
                 weight = weight * density;    
-            if self.units == 'pounds':
-                weight = weight / 2000
+            if self.units == 'pounds':                                
+                weight = weight / 2000                
             if self.units == 'metric_tons':
                 weight = weight * 1.10231
             if self.units == 'cubic_meter':
@@ -171,7 +189,7 @@ class TicketsRd(db.Model, CRUD):
                 weight = cy * density
             if self.units == 'kilograms':
                 pounds = weight * 2.20462
-                weight = pounds / 2000
+                weight = pounds / 2000                
 
             recycled = (((float(rate) / 100) * float(weight)) * (float(percentage) / 100))    
             if recycled < 0:
@@ -180,7 +198,9 @@ class TicketsRd(db.Model, CRUD):
             self.weight = weight
             self.recycled = recycled                                            
             self.rate_used = rate
-        except:
+            self.units = 'tons'
+        except Exception as e:
+            print(e)
             raise ValueError("Oops! That was no valid data. Check data and try again...")    
 
            

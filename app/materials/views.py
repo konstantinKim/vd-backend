@@ -14,13 +14,15 @@ salvageSchema = MaterialsSalvageSchema()
 api = Api(materials)
 
 class MaterialsList(Resource):                
-    def get(self):        
+    def get(self):
+        db.session.commit()        
         query = Materials.query.filter(Materials.cn_id < 1, Materials.pt_id < 1).all()        
         results = schema.dump(query, many=True).data
         return results                
 
 class MaterialsSalvageList(Resource):                
-    def get(self):        
+    def get(self): 
+        db.session.commit()       
         query = MaterialsSalvage.query.all()        
         results = salvageSchema.dump(query, many=True).data
         return results                        

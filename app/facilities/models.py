@@ -28,7 +28,9 @@ class FacilitiesMaterials(db.Model):
 class Facilities(db.Model, CRUD):    
     __tablename__ = 'facilities'     
     FACILITY_ID = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(250), unique=True, nullable=False)       
+    name = db.Column(db.String(250), unique=True, nullable=False)
+    street = db.Column(db.String(250))
+    zipcode = db.Column(db.String(250))       
     facility_materials = db.relationship(FacilitiesMaterials, backref="facility", lazy='joined')
     
                  
@@ -36,7 +38,9 @@ class FacilitiesSchema(Schema):
     not_blank = validate.Length(min=1, error='Field cannot be blank')    
     id = fields.Integer()    
     FACILITY_ID = fields.Integer(primary_key=True)    
-    name = fields.String(validate=not_blank)            
+    name = fields.String(validate=not_blank)
+    street = fields.String()
+    zipcode = fields.String()
      
     
      #self links

@@ -153,19 +153,22 @@ def buildResult(query):
     #append facilities with related tickets to result    
     result['data']['attributes']['facilities'] = []
     fids = []
-    for ticket in query.tickets:            
-        if ticket.facility:
+    for ticket in query.tickets:
+        ticketFacility = ticket.facility           
+        if ticketFacility:
             facilities = FacilitiesSchema().dump(ticket.facility).data            
-            facility = facilities['data']['attributes']            
+            facility = facilities['data']['attributes']                                    
             #prevent add duplictes            
             if not facility['FACILITY_ID'] in fids and facility['FACILITY_ID'] in tf:
+                city = ticketFacility.city
+                county = city.county
                 fids.append(facility['FACILITY_ID'])
-                facility['tickets'] = tf[facility['FACILITY_ID']]
+                facility['tickets'] = tf[facility['FACILITY_ID']]                
+                facility['city'] = city.name
+                facility['state'] = county.state
                 result['data']['attributes']['facilities'].append(facility)
     
-    city = query.city
-    print('============================================');
-    print(city.name);
+    city = query.city    
     result['data']['attributes']['city'] = city.name    
 
     return result['data']['attributes']        

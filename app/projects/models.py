@@ -27,10 +27,18 @@ class Materials(db.Model, CRUD):
     MATERIAL_ID = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(250), unique=True, nullable=False)       
 
+class Counties(db.Model, CRUD):    
+    __tablename__ = 'counties'     
+    COUNTY_ID = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(250), nullable=False)
+    state = db.Column(db.String(250))               
+
 class Cities(db.Model, CRUD):    
     __tablename__ = 'cities'     
     CITY_ID = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(250), nullable=False)           
+    COUNTY_ID = db.Column(db.Integer, db.ForeignKey('counties.COUNTY_ID'))
+    name = db.Column(db.String(250), nullable=False)
+    county = db.relationship(Counties, backref="city", lazy='joined' )    
 
 class TicketsRd(db.Model):
     __tablename__ = 'tickets_rd'     
@@ -101,6 +109,10 @@ class Facilities(db.Model):
     __tablename__ = 'facilities'     
     FACILITY_ID = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(250), unique=True, nullable=False)           
+    street = db.Column(db.String(250))
+    zipcode = db.Column(db.String(250))
+    CITY_ID = db.Column(db.Integer, db.ForeignKey('cities.CITY_ID'))           
+    city = db.relationship(Cities, backref="facility", lazy='joined' )
 
 class ProjectsHaulers(db.Model):    
     __tablename__ = 'projects_haulers'     

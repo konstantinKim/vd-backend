@@ -136,7 +136,14 @@ class TicketsRd(db.Model, CRUD):
         total = query.fetchone()        
         if total and total[0]:            
             if total[0] + int(percentage) > 100:            
-                raise ValueError("Ticket #"+self.ticket+" has already been used.")
+                raise ValueError("Ticket #"+self.ticket+" has already been used.")                
+
+    def validateDate(self):        
+        ticket_date = datetime.datetime.strptime(self.thedate, "%Y-%m-%d")
+        current_date = datetime.datetime.now()
+        d = current_date - ticket_date        
+        if d.total_seconds() < 0:       
+            raise ValueError("Cannot use future Ticket Date.")
 
     def setRecyclingRates(self):
         try:

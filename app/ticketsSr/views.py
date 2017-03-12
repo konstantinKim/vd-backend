@@ -31,7 +31,7 @@ class TicketsSrList(Resource):
             _FACILITY_ID = 0
             _ticket = ''
             _thedate_ticket = ''
-            if params['CONSTRUCTION_TYPE_ID'] == '18':                                
+            if params['CONSTRUCTION_TYPE_ID'] == '18':                                                
                 _FACILITY_ID = params['FACILITY_ID']
                 _ticket =  params['ticket']
                 _thedate_ticket = params['thedate_ticket']                                    
@@ -50,7 +50,8 @@ class TicketsSrList(Resource):
                 inventory=params['inventory'],                                                        
                 HAULER_ID=Security.getHaulerId(),
             )            
-            
+                        
+            ticket.validateDate()  
             ticket.setRecyclingRates(params)
             ticket.add(ticket)                                
 
@@ -179,9 +180,9 @@ class TicketsSrUpdate(Resource):
             schema.validate(raw_dict)                                    
             params = raw_dict['data']['attributes']                                                
             for key, value in params.items():                    
-                setattr(ticket, key, value)            
-            
-
+                setattr(ticket, key, value)                            
+                        
+            ticket.validateDate()
             ticket.setRecyclingRates(params)
             ticket.update()
             db.session.commit()                                                          

@@ -67,7 +67,7 @@ class TicketsSr(db.Model, CRUD):
         self.description = kwargs.get('description')
         self.inventory = kwargs.get('inventory', '')
         self.thedate = datetime.datetime.today().strftime('%Y-%m-%d')
-        self.thedate_ticket = kwargs.get('thedate', datetime.datetime.today().strftime('%Y-%m-%d'))
+        self.thedate_ticket = kwargs.get('thedate_ticket', datetime.datetime.today().strftime('%Y-%m-%d'))
         self.submitted_by = kwargs.get('submitted_by')
         self.percentage = kwargs.get('percentage')        
         self.HAULER_ID = kwargs.get('HAULER_ID')
@@ -102,6 +102,14 @@ class TicketsSr(db.Model, CRUD):
                 s = p.stdout.readline()
                 if not s: break
                 print (s,)    
+
+    def validateDate(self):           
+        if self.thedate_ticket:             
+            ticket_date = datetime.datetime.strptime(self.thedate_ticket, "%Y-%m-%d")
+            current_date = datetime.datetime.now()
+            d = current_date - ticket_date        
+            if d.total_seconds() < 0:       
+                raise ValueError("Cannot use future Ticket Date.")            
 
     def setRecyclingRates(self, params):
         try:

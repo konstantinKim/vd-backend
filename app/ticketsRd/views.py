@@ -45,6 +45,7 @@ class TicketsRdList(Resource):
                 )
                 
                 ticket.validateTicket()
+                ticket.validateDate()
                 ticket.setRecyclingRates()
                 ticket.add(ticket)                                
 
@@ -133,6 +134,7 @@ class TicketsRdUpdate(Resource):
             if params['ticket'] != old_ticket or int(old_facility) != int(params['FACILITY_ID']):
                 ticket.validateTicket()
 
+            ticket.validateDate()
             ticket.setRecyclingRates()
             ticket.update()                                                          
             

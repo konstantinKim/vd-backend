@@ -7,6 +7,7 @@ from flask_restful import Api, Resource
 from app.auth.models import token_auth, Security
 import time
 import os
+import datetime
 
 from sqlalchemy.exc import SQLAlchemyError
 from marshmallow import ValidationError
@@ -30,7 +31,7 @@ class TicketsSrList(Resource):
 
             _FACILITY_ID = 0
             _ticket = ''
-            _thedate_ticket = ''
+            _thedate_ticket = datetime.datetime.today().strftime('%Y-%m-%d')
             if params['CONSTRUCTION_TYPE_ID'] == '18':                                                
                 _FACILITY_ID = params['FACILITY_ID']
                 _ticket =  params['ticket']

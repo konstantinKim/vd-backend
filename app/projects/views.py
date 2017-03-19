@@ -11,6 +11,9 @@ import json
 import datetime
 import os
 
+from app.helper.phpserialize import *
+from collections import OrderedDict
+
 from sqlalchemy.exc import SQLAlchemyError
 from marshmallow import ValidationError
 
@@ -169,7 +172,20 @@ def buildResult(query):
                 result['data']['attributes']['facilities'].append(facility)
     
     city = query.city    
-    result['data']['attributes']['city'] = city.name    
+    result['data']['attributes']['city'] = city.name
+        
+    res = loads(dumps(city.efields), array_hook=OrderedDict)
+    res = loads(res, object_hook=phpobject)    
+    vendor_terms_key = 'vendor_terms1'.encode("utf-8")
+    if vendor_terms_key in res:
+        result['data']['attributes']['vendor_terms'] = str(res[vendor_terms_key],'utf-8')
+    else:
+        result['data']['attributes']['vendor_terms'] = 'The City did not provide Terms and Conditions.'    
+    
+    for item in res:
+        print(item)
+        print(res[item])
+       
 
     return result['data']['attributes']        
 
@@ -250,15 +266,43 @@ class ProjectsUpdate(Resource):
         query = Projects.query.get_or_404(id)                                
         return buildResult(query)
     
-    def patch(self, id):        
-        project = Projects.query.get_or_404(id)
-        raw_dict = request.get_json(force=True)
+    @token_auth.login_required
+    def patch(self, id):                
+        project = Projects.query.get_or_404(id)        
+        raw_dict = {"data": {"attributes": request.form, "type": "projects"}}
         
-        try:
+        try:            
             schema.validate(raw_dict)
             user_dict = raw_dict['data']['attributes']
-            for key, value in user_dict.items():
+            for key, value in user_dict.items():                
+                setattr(project, key, value)
+          
+            project.update()
+            db.session.commit()            
+            return self.get(id)
+            
+        except ValidationError as err:
+                resp = jsonify({"error": err.messages})
+                resp.status_code = 401
+                return resp               
                 
+        except SQLAlchemyError as e:
+                db.session.rollback()
+                resp = jsonify({"error": str(e)})
+                resp.status_code = 401
+                return resp    
+
+class ProjectsTermsAgree(Resource):                
+    
+    @token_auth.login_required
+    def patch(self, id):                
+        project = Projects.query.get_or_404(id)        
+        raw_dict = {"data": {"attributes": request.form, "type": "projects"}}
+        
+        try:            
+            schema.validate(raw_dict)
+            user_dict = raw_dict['data']['attributes']
+            for key, value in user_dict.items():                
                 setattr(project, key, value)
           
             project.update()
@@ -275,23 +319,11 @@ class ProjectsUpdate(Resource):
                 resp = jsonify({"error": str(e)})
                 resp.status_code = 401
                 return resp
-             
-    def delete(self, id):        
-        project = Projects.query.get_or_404(id)
-        try:
-            delete = user.delete(user)
-            db.session.commit()
-            response = make_response()
-            response.status_code = 204
-            return response
-            
-        except SQLAlchemyError as e:
-                db.session.rollback()
-                resp = jsonify({"error": str(e)})
-                resp.status_code = 401
-                return resp        
+
+                            
 
 api.add_resource(ProjectsList, '.json')
 api.add_resource(CompletedList, '/completed.json')
 api.add_resource(CompletedCount, '/completed_count.json')
 api.add_resource(ProjectsUpdate, '/<int:id>.json')
+api.add_resource(ProjectsTermsAgree, '/terms_agree/<int:id>.json')

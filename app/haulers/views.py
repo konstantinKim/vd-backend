@@ -5,7 +5,7 @@ from app.auth.models import Auth, basic_auth, token_auth, Security
 from app.haulers.models import Haulers, HaulersSchema, db
 from app.representative.models import Representative
 from app.mail import send_email
-from config import GH_VD_SECRET
+from config import GH_VD_SECRET, MY_URL
  
 from sqlalchemy.exc import SQLAlchemyError
 from marshmallow import ValidationError
@@ -66,7 +66,7 @@ class HaulersUpdate(Resource):
                                 token = m.hexdigest()
 
                                 text = "You have been invited to register as a Vendor Representative for  %s <br />" % hauler.name 
-                                text += '<b><a href="http://vd.greenhalosystems.com/signup?token=%s">Please login to complete your registration</a></b> <br /><br />' % token
+                                text += '<b><a href="{0}/signup?token={1}">Please login to complete your registration</a></b> <br /><br />'.format(MY_URL, token) 
                                 text += "Already have an account? <a href='http://vd.greenhalosystems.com/login'>Sign in here</a>."
                                 send_email('Vendor Invitation', 'no-reply@greenhalosystems.com', new_email, text)
                     else:

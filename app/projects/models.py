@@ -38,6 +38,7 @@ class Cities(db.Model, CRUD):
     CITY_ID = db.Column(db.Integer, primary_key=True)
     COUNTY_ID = db.Column(db.Integer, db.ForeignKey('counties.COUNTY_ID'))
     name = db.Column(db.String(250), nullable=False)
+    efields = db.Column(db.Text())
     county = db.relationship(Counties, backref="city", lazy='joined' )    
 
 class TicketsRd(db.Model):
@@ -141,6 +142,8 @@ class Projects(db.Model, CRUD):
     projects_haulers = db.relationship(ProjectsHaulers, backref="hauler_project", lazy='joined')
     projects_debrisbox = db.relationship(ProjectsDebrisbox, backref="debrisbox_project", lazy='joined')
     city = db.relationship(Cities, backref="project", lazy='joined' )
+    hauling_option = db.Column(db.String(64))
+    vendor_terms_agree = db.Column(db.String(10))
         
            
 class ProjectsSchema(Schema):    
@@ -153,6 +156,8 @@ class ProjectsSchema(Schema):
     state = fields.String()
     zipcode = fields.String()        
     tracking = fields.String(validate=not_blank)           
+    hauling_option = fields.String()
+    vendor_terms_agree = fields.String()
      
     
      #self links

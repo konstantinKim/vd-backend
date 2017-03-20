@@ -178,20 +178,23 @@ def buildResult(query):
     result['data']['attributes']['city'] = city.name
     print(city.name)
 
-    print('========START TERMS=======')    
-    res = loads(dumps(city.efields), array_hook=OrderedDict)
-    print('===1===')
-    res = loads(res, object_hook=phpobject)
-    print('===2===')    
-    vendor_terms_key = 'vendor_terms1'.encode("utf-8")
-    print('===3===')
-    if vendor_terms_key in res:
-        print('===4===')
-        result['data']['attributes']['vendor_terms'] = str(res[vendor_terms_key],'utf-8')
-    else:
-        print('===5===')
-        result['data']['attributes']['vendor_terms'] = 'The City did not provide Terms and Conditions.'            
-       
+    try:
+        print('========START TERMS=======')    
+        res = loads(dumps(city.efields), array_hook=OrderedDict)
+        print('===1===')
+        res = loads(res, object_hook=phpobject)
+        print('===2===')    
+        vendor_terms_key = 'vendor_terms1'.encode("utf-8")
+        print('===3===')
+        if vendor_terms_key in res:
+            print('===4===')
+            result['data']['attributes']['vendor_terms'] = str(res[vendor_terms_key],'utf-8')
+        else:
+            print('===5===')
+            result['data']['attributes']['vendor_terms'] = 'The City did not provide Terms and Conditions.'            
+    except RuntimeError:
+        print('===6===')
+        result['data']['attributes']['vendor_terms'] = 'The City did not provide Terms and Conditions.'                                          
 
     return result['data']['attributes']        
 

@@ -131,6 +131,9 @@ class ProjectsDebrisbox(db.Model):
 class Projects(db.Model, CRUD):    
     PROJECT_ID = db.Column(db.Integer, primary_key=True)
     CITY_ID = db.Column(db.Integer, db.ForeignKey('cities.CITY_ID'))    
+    UID = db.Column(db.Integer)
+    final_HAULER_ID = db.Column(db.Integer)
+    final_thedate = db.Column(db.DateTime())
     name = db.Column(db.String(250), unique=True, nullable=False)   
     street = db.Column(db.String(250), unique=True, nullable=False)  
     state = db.Column(db.String(10))

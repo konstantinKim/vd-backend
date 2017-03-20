@@ -180,11 +180,7 @@ def buildResult(query):
     if vendor_terms_key in res:
         result['data']['attributes']['vendor_terms'] = str(res[vendor_terms_key],'utf-8')
     else:
-        result['data']['attributes']['vendor_terms'] = 'The City did not provide Terms and Conditions.'    
-    
-    for item in res:
-        print(item)
-        print(res[item])
+        result['data']['attributes']['vendor_terms'] = 'The City did not provide Terms and Conditions.'            
        
 
     return result['data']['attributes']        
@@ -271,15 +267,28 @@ class ProjectsUpdate(Resource):
         project = Projects.query.get_or_404(id)        
         raw_dict = {"data": {"attributes": request.form, "type": "projects"}}
         
-        try:            
+        try:
+            HAULER_ID = Security.getHaulerId()            
             schema.validate(raw_dict)
-            user_dict = raw_dict['data']['attributes']
-            for key, value in user_dict.items():                
-                setattr(project, key, value)
+            params_dict = raw_dict['data']['attributes']            
+            
+            #for key, value in params_dict.items():                
+                #setattr(project, key, value)
+
+            if 'vendor_terms_agree' in params_dict:                
+                setattr(project, 'vendor_terms_agree', 'true')
+                project.update()
+                query = db.engine.execute("INSERT INTO projects_notes (DID, PROJECT_ID, UID, note, thedate) VALUES (75, {0}, {1}, 'Vendor has agreed to project terms and has accepted', NOW())".format(id, project.UID))                                                  
+
+            if 'status' in params_dict:                
+                setattr(project, 'status', 'submitted_for_final')
+                setattr(project, 'final_HAULER_ID', HAULER_ID)
+                setattr(project, 'final_thedate', datetime.datetime.today().strftime('%Y-%m-%d %H:%M:%S'))
+                project.update()                
           
-            project.update()
+            
             db.session.commit()            
-            return self.get(id)
+            return (id)
             
         except ValidationError as err:
                 resp = jsonify({"error": err.messages})
@@ -295,19 +304,18 @@ class ProjectsUpdate(Resource):
 class ProjectsTermsAgree(Resource):                
     
     @token_auth.login_required
-    def patch(self, id):                
+    def patch(self, id):                        
         project = Projects.query.get_or_404(id)        
         raw_dict = {"data": {"attributes": request.form, "type": "projects"}}
         
-        try:            
-            schema.validate(raw_dict)
-            user_dict = raw_dict['data']['attributes']
-            for key, value in user_dict.items():                
-                setattr(project, key, value)
-          
+        try:                                        
+            setattr(project, 'vendor_terms_agree', 'true')          
             project.update()
+            
+            query = db.engine.execute("INSERT INTO projects_notes (DID, PROJECT_ID, UID, note, thedate) VALUES (75, {0}, {1}, 'Vendor has agreed to project terms and has accepted', NOW())".format(id, project.UID))                                  
+            
             db.session.commit()            
-            return self.get(id)
+            return (id) 
             
         except ValidationError as err:
                 resp = jsonify({"error": err.messages})
@@ -326,4 +334,4 @@ api.add_resource(ProjectsList, '.json')
 api.add_resource(CompletedList, '/completed.json')
 api.add_resource(CompletedCount, '/completed_count.json')
 api.add_resource(ProjectsUpdate, '/<int:id>.json')
-api.add_resource(ProjectsTermsAgree, '/terms_agree/<int:id>.json')
+#api.add_resource(ProjectsTermsAgree, '/terms_agree/<int:id>.json')

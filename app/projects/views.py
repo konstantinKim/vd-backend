@@ -25,7 +25,9 @@ api = Api(projects)
 
 def buildResult(query):    
     HAULER_ID = Security.getHaulerId()
-    result = schema.dump(query).data                        
+    result = schema.dump(query).data
+    print('================================')
+    print(result)                        
     #group tickets by facility
     tf = {}
     m_ids = []
@@ -192,7 +194,7 @@ class ProjectsList(Resource):
         HAULER_ID = Security.getHaulerId()        
         query = Projects.query.filter(ProjectsHaulers.HAULER_ID==HAULER_ID, ProjectsHaulers.PROJECT_ID==Projects.PROJECT_ID, Projects.status=='approved').all()        
         haulersIds = []
-        for project in query:            
+        for project in query:                        
             haulersIds.append(project.PROJECT_ID)            
 
         debris = Projects.query.filter(ProjectsDebrisbox.HAULER_ID==HAULER_ID, ProjectsDebrisbox.PROJECT_ID==Projects.PROJECT_ID, Projects.status=='approved').all()            

@@ -67,7 +67,7 @@ class HaulersUpdate(Resource):
 
                                 text = "You have been invited to register as a Vendor Representative for  %s <br />" % hauler.name 
                                 text += '<b><a href="{0}/signup?token={1}">Please login to complete your registration</a></b> <br /><br />'.format(MY_URL, token) 
-                                text += "Already have an account? <a href='http://vd.greenhalosystems.com/login'>Sign in here</a>."
+                                text += "Already have an account? <a href='{0}/login'>Sign in here</a>.".format(MY_URL)
                                 send_email('Vendor Invitation', 'no-reply@greenhalosystems.com', new_email, text)
                     else:
                       query = db.engine.execute("DELETE FROM haulers_representative WHERE HAULER_ID="+ str(HAULER_ID) + "")                                  

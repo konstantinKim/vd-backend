@@ -173,8 +173,10 @@ def buildResult(query):
                 facility['state'] = county.state
                 result['data']['attributes']['facilities'].append(facility)
     
+    print('========START CITY=======')
     city = query.city    
     result['data']['attributes']['city'] = city.name
+    print(city.name)
         
     res = loads(dumps(city.efields), array_hook=OrderedDict)
     res = loads(res, object_hook=phpobject)    

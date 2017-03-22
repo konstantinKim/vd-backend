@@ -1,3 +1,4 @@
+import requests
 from flask import Blueprint, request, jsonify, make_response
 from app.projects.models import Projects, ProjectsHaulers, ProjectsDebrisbox, ProjectsSchema, TicketsRd, db
 from app.facilities.models import FacilitiesSchema
@@ -10,6 +11,7 @@ from app.auth.models import token_auth, Security
 import json
 import datetime
 import os
+from config import GH_URL
 
 from app.helper.phpserialize import *
 from collections import OrderedDict
@@ -25,9 +27,7 @@ api = Api(projects)
 
 def buildResult(query):    
     HAULER_ID = Security.getHaulerId()
-    result = schema.dump(query).data
-    print('================================')
-    print(result)                        
+    result = schema.dump(query).data                            
     #group tickets by facility
     tf = {}
     m_ids = []
@@ -172,34 +172,34 @@ def buildResult(query):
                 facility['city'] = city.name
                 facility['state'] = county.state
                 result['data']['attributes']['facilities'].append(facility)
-    
-    print('========START CITY=======')
+        
     city = query.city    
-    result['data']['attributes']['city'] = city.name
-    print(city.name)
-    if len(city.efields):
-        try:
-            print('========START TERMS=======')    
-            res = loads(dumps(city.efields), array_hook=OrderedDict)
-            print('===1===')
-            print(res)
-            res = loads(res, object_hook=phpobject)
-            print('===2===')    
-            vendor_terms_key = 'vendor_terms1'.encode("utf-8")
-            print('===3===')
-            if vendor_terms_key in res:
-                print('===4===')
-                result['data']['attributes']['vendor_terms'] = str(res[vendor_terms_key],'utf-8')
-            else:
-                print('===5===')
-                result['data']['attributes']['vendor_terms'] = 'The City did not provide Terms and Conditions.'            
-        except RuntimeError:
-            print('===6===')
-            result['data']['attributes']['vendor_terms'] = 'The City did not provide Terms and Conditions.'                                          
-    else:
-        print('===7===')
-        result['data']['attributes']['vendor_terms'] = 'The City did not provide Terms and Conditions.'                                                          
+    result['data']['attributes']['city'] = city.name    
+    
+    # if len(city.efields):
+    #     try:
+    #         print('========START TERMS=======')    
+    #         res = loads(dumps(city.efields), array_hook=OrderedDict)
+    #         print('===1===')
+    #         res = loads(res, object_hook=phpobject)
+    #         print('===2===')    
+    #         vendor_terms_key = 'vendor_terms1'.encode("utf-8")
+    #         print('===3===')
+    #         if vendor_terms_key in res:
+    #             print('===4===')
+    #             result['data']['attributes']['vendor_terms'] = str(res[vendor_terms_key],'utf-8')
+    #         else:
+    #             print('===5===')
+    #             result['data']['attributes']['vendor_terms'] = 'The City did not provide Terms and Conditions.'            
+    #     except RuntimeError:
+    #         print('===6===')
+    #         result['data']['attributes']['vendor_terms'] = 'The City did not provide Terms and Conditions.'                                          
+    # else:
+    #     print('===7===')
+    #     result['data']['attributes']['vendor_terms'] = 'The City did not provide Terms and Conditions.'                                                          
 
+    result['data']['attributes']['vendor_terms'] = ''                                                          
+    
     return result['data']['attributes']        
 
 class ProjectsList(Resource):    
@@ -318,32 +318,14 @@ class ProjectsUpdate(Resource):
                 resp.status_code = 401
                 return resp    
 
-class ProjectsTermsAgree(Resource):                
+class VendorTerms(Resource):                
     
     @token_auth.login_required
-    def patch(self, id):                        
-        project = Projects.query.get_or_404(id)        
-        raw_dict = {"data": {"attributes": request.form, "type": "projects"}}
+    def get(self, id):                                
+        r = requests.get('{0}/?func=cities/config/get_terms&CITY_ID={1}'.format(GH_URL, id))                        
+        return (r.text)
+
         
-        try:                                        
-            setattr(project, 'vendor_terms_agree', 'true')          
-            project.update()
-            
-            query = db.engine.execute("INSERT INTO projects_notes (DID, PROJECT_ID, UID, note, thedate) VALUES (75, {0}, {1}, 'Vendor has agreed to project terms and has accepted', NOW())".format(id, project.UID))                                  
-            
-            db.session.commit()            
-            return (id) 
-            
-        except ValidationError as err:
-                resp = jsonify({"error": err.messages})
-                resp.status_code = 401
-                return resp               
-                
-        except SQLAlchemyError as e:
-                db.session.rollback()
-                resp = jsonify({"error": str(e)})
-                resp.status_code = 401
-                return resp
 
                             
 
@@ -351,4 +333,4 @@ api.add_resource(ProjectsList, '.json')
 api.add_resource(CompletedList, '/completed.json')
 api.add_resource(CompletedCount, '/completed_count.json')
 api.add_resource(ProjectsUpdate, '/<int:id>.json')
-#api.add_resource(ProjectsTermsAgree, '/terms_agree/<int:id>.json')
+api.add_resource(VendorTerms, '/terms/city/<int:id>.json')

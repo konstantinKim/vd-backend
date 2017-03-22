@@ -1,3 +1,4 @@
+import requests
 from marshmallow_jsonapi import Schema, fields
 from marshmallow import validate
 from flask.ext.sqlalchemy import SQLAlchemy
@@ -8,6 +9,7 @@ from config import APP_ROOT, DEBUG
 import hashlib
 import os
 import subprocess
+from config import GH_URL
 
 db = SQLAlchemy(session_options={"autoflush": False})
 
@@ -109,7 +111,11 @@ class TicketsSr(db.Model, CRUD):
             current_date = datetime.datetime.now()
             d = current_date - ticket_date        
             if d.total_seconds() < 0:       
-                raise ValueError("Cannot use future Ticket Date.")            
+                raise ValueError("Cannot use future Ticket Date.")  
+    
+    def sendLargeTicketNotification(self):        
+        if self.weight > 100:            
+            requests.get('{0}/?func=messages/send_large_ticket_notification&ticket_id={1}&ticket_type=sr'.format(GH_URL, self.TICKET_SR_ID))                            
 
     def setRecyclingRates(self, params):
         try:

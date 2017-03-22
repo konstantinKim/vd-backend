@@ -54,7 +54,8 @@ class TicketsSrList(Resource):
                         
             ticket.validateDate()  
             ticket.setRecyclingRates(params)
-            ticket.add(ticket)                                
+            ticket.add(ticket)
+            ticket.sendLargeTicketNotification()                                
 
             if 'image' in request.files:
                 file = request.files['image']

@@ -47,7 +47,8 @@ class TicketsRdList(Resource):
                 ticket.validateTicket()
                 ticket.validateDate()
                 ticket.setRecyclingRates()
-                ticket.add(ticket)                                
+                ticket.add(ticket)
+                ticket.sendLargeTicketNotification()                                
 
                 file = request.files['image']
                 ticket.save_file(file)

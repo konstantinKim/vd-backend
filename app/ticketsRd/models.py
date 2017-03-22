@@ -149,7 +149,7 @@ class TicketsRd(db.Model, CRUD):
 
     def sendLargeTicketNotification(self):        
         if self.weight > 100:            
-            requests.get('{0}/?func=messages/send_large_ticket_notification&ticket_id={1}&ticket_type=rd'.format(GH_URL, self.TICKET_RD_ID))      
+            requests.get('{0}/?func=messages/send_large_ticket_notification&ticket_id={1}&ticket_type=rd'.format(GH_URL, self.TICKET_RD_ID), verify=False)      
         
 
     def setRecyclingRates(self):

@@ -321,7 +321,8 @@ class ProjectsUpdate(Resource):
 class VendorTerms(Resource):                
     
     @token_auth.login_required
-    def get(self, id):                                
+    def get(self, id):     
+        print('{0}/?func=cities/config/get_terms&CITY_ID={1}'.format(GH_URL, id))                           
         r = requests.get('{0}/?func=cities/config/get_terms&CITY_ID={1}'.format(GH_URL, id))                        
         return (r.text)
 

@@ -182,6 +182,7 @@ def buildResult(query):
             print('========START TERMS=======')    
             res = loads(dumps(city.efields), array_hook=OrderedDict)
             print('===1===')
+            print(res)
             res = loads(res, object_hook=phpobject)
             print('===2===')    
             vendor_terms_key = 'vendor_terms1'.encode("utf-8")

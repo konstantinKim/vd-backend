@@ -5,6 +5,7 @@ from app.facilities.models import FacilitiesSchema
 from app.ticketsRd.models import TicketsRdSchema
 from app.ticketsSr.models import TicketsSrSchema
 from app.materials.models import MaterialsSchema
+from app.haulers.models import Haulers
 from flask_restful import Api, Resource
 from app.helper.helper import Calc
 from app.auth.models import token_auth, Security
@@ -285,7 +286,8 @@ class ProjectsUpdate(Resource):
         raw_dict = {"data": {"attributes": request.form, "type": "projects"}}
         
         try:
-            HAULER_ID = Security.getHaulerId()            
+            HAULER_ID = Security.getHaulerId()
+            hauler = Haulers.query.get_or_404(HAULER_ID)            
             schema.validate(raw_dict)
             params_dict = raw_dict['data']['attributes']            
             
@@ -295,7 +297,8 @@ class ProjectsUpdate(Resource):
             if 'vendor_terms_agree' in params_dict:                
                 setattr(project, 'vendor_terms_agree', 'true')
                 project.update()
-                query = db.engine.execute("INSERT INTO projects_notes (DID, PROJECT_ID, UID, note, thedate) VALUES (75, {0}, {1}, 'Vendor has agreed to project terms and has accepted', NOW())".format(id, project.UID))                                                  
+                note = json.dumps('Vendor {0} has agreed to project terms and has accepted'.format(hauler.name))                                 
+                query = db.engine.execute("INSERT INTO projects_notes (DID, PROJECT_ID, UID, note, thedate) VALUES (75, {0}, {1}, {2}, NOW())".format(id, project.UID, note))                                                  
 
             if 'status' in params_dict:                
                 setattr(project, 'status', 'submitted_for_final')

@@ -25,7 +25,7 @@ class Authentiaction(Resource):
             HAULER_ID = Security.getHaulerId(token)        
             query = Haulers.query.get_or_404(HAULER_ID)
             results = HaulersSchema().dump(query).data
-            data = { 'token': token, 'HAULER_ID': results['data']['attributes']['HAULER_ID'], 'email': results['data']['attributes']['email'], 'contact': results['data']['attributes']['contact'], 'company': results['data']['attributes']['name']} 
+            data = { 'token': token, 'HAULER_ID': results['data']['attributes']['HAULER_ID'], 'email': results['data']['attributes']['email'], 'contact': results['data']['attributes']['contact'], 'company': results['data']['attributes']['name'], 'selfhaul': results['data']['attributes']['selfhaul']} 
             db.session.commit()
             response = make_response(json.dumps(data))
             return (response)                
@@ -54,7 +54,7 @@ class SignUp(Resource):
                 if token:
                     db.engine.execute("UPDATE haulers SET updated_at=NOW() WHERE HAULER_ID="+ str(HAULER_ID) + "")                                  
                     results = HaulersSchema().dump(hauler).data
-                    data = { 'token': token, 'HAULER_ID': results['data']['attributes']['HAULER_ID'], 'email': results['data']['attributes']['email'], 'contact': results['data']['attributes']['contact'], 'company': results['data']['attributes']['name']} 
+                    data = { 'token': token, 'HAULER_ID': results['data']['attributes']['HAULER_ID'], 'email': results['data']['attributes']['email'], 'contact': results['data']['attributes']['contact'], 'company': results['data']['attributes']['name'], 'selfhaul': results['data']['attributes']['selfhaul']} 
                     response = make_response(json.dumps(data))
                     db.session.commit()
                     return (response)
@@ -73,7 +73,7 @@ class SignUp(Resource):
                     token = Auth.setToken(hauler.HAULER_ID)
                     if token:                        
                         results = HaulersSchema().dump(hauler).data
-                        data = { 'token': token, 'HAULER_ID': results['data']['attributes']['HAULER_ID'], 'email': reps.email, 'contact': results['data']['attributes']['contact'], 'company': results['data']['attributes']['name']} 
+                        data = { 'token': token, 'HAULER_ID': results['data']['attributes']['HAULER_ID'], 'email': reps.email, 'contact': results['data']['attributes']['contact'], 'company': results['data']['attributes']['name'], 'selfhaul': results['data']['attributes']['selfhaul']} 
                         response = make_response(json.dumps(data))
                         db.session.commit()
                         return (response)
